@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青蛙王子大戰食物怪 - PS5 搖桿版</title>
+    <title>青蛙王子大戰食物怪 - 精準斬擊版</title>
     <style>
         * {
             box-sizing: border-box;
@@ -191,7 +191,7 @@
             position: relative;
         }
 
-        /* PS5 風格 360 度圓蘑菇搖桿 (Thumbstick) */
+        /* PS5 風格 360 度圓蘑菇搖桿 */
         .joystick-container {
             position: relative;
             width: 130px;
@@ -347,9 +347,10 @@
         <div class="overlay" id="startOverlay">
             <h1>👑 青蛙王子大戰食物怪 🐸</h1>
             <p>
-                <b>360° 圓蘑菇搖桿</b>：自由向全方向移動<br>
-                <b>推搖桿 + 按 B 鍵</b>：朝推動方向斬擊！<br>
-                <b>A 鍵</b>：向面對方向快速衝刺閃避！
+                <b>怪物皆可一擊必殺！</b><br>
+                <b>360° 圓蘑菇搖桿</b>：自由移動<br>
+                <b>推搖桿 + B 鍵</b>：精準角度弧形斬擊！<br>
+                <b>A 鍵</b>：高速無敵衝刺閃避！
             </p>
             <button class="btn-start" onclick="startGame()">開始遊戲</button>
         </div>
@@ -397,6 +398,10 @@
         canvas.width = GRID_COLS * TILE_SIZE;  // 396px
         canvas.height = GRID_ROWS * TILE_SIZE; // 396px
 
+        // 斬擊幾何精準參數
+        const ATTACK_RADIUS = 68;              // 斬擊半徑 (像素)
+        const ATTACK_ARC = Math.PI * 0.72;     // 斬擊扇形總角度 (約 130 度)
+
         // 遊戲狀態
         let gameRunning = false;
         let score = 0;
@@ -416,7 +421,7 @@
         // 斬擊/攻擊機制
         let isAttacking = false;
         let attackTimer = 0;
-        const ATTACK_DURATION = 220;
+        const ATTACK_DURATION = 200;
         let attackAngle = -Math.PI / 2; // 預設朝上
 
         // 360 度搖桿狀態 Vector (-1 ~ 1)
@@ -427,7 +432,7 @@
         // 鍵盤狀態
         const kbKeys = { up: false, down: false, left: false, right: false };
 
-        // 主角 - 青蛙王子 (360 度自由移動)
+        // 主角 - 青蛙王子
         const player = {
             x: canvas.width / 2,
             y: canvas.height / 2,
@@ -440,12 +445,12 @@
         let monsters = [];
         let particles = [];
 
-        // 怪物類型
+        // 怪物類型 (全部一擊必殺 hp: 1)
         const MONSTER_TYPES = [
-            { type: 'egg', emoji: '🥚', hp: 1, speed: 1.1, score: 10, color: '#f5f6fa' },
-            { type: 'milk', emoji: '🥛', hp: 1, speed: 1.8, score: 15, color: '#dcdde1' },
-            { type: 'shroom', emoji: '🍄', hp: 2, speed: 0.9, score: 25, color: '#e74c3c' },
-            { type: 'cheese', emoji: '🧀', hp: 1, speed: 1.4, score: 20, color: '#f1c40f' }
+            { type: 'egg', emoji: '🥚', hp: 1, speed: 1.1, score: 10, color: '#f5f6fa', limbColor: '#dcdde1' },
+            { type: 'milk', emoji: '🥛', hp: 1, speed: 1.8, score: 15, color: '#dcdde1', limbColor: '#718093' },
+            { type: 'shroom', emoji: '🍄', hp: 1, speed: 1.0, score: 25, color: '#e74c3c', limbColor: '#c0392b' },
+            { type: 'cheese', emoji: '🧀', hp: 1, speed: 1.4, score: 20, color: '#f1c40f', limbColor: '#d35400' }
         ];
 
         // 靜態生成草地方格
@@ -504,7 +509,6 @@
         function update(dt) {
             const timeScale = dt / 16.66;
 
-            // 1. 冷卻與狀態計時
             if (dashCooldown > 0) {
                 dashCooldown -= dt;
                 if (dashCooldown < 0) dashCooldown = 0;
@@ -520,7 +524,7 @@
                 if (attackTimer <= 0) isAttacking = false;
             }
 
-            // 2. 計算輸入方向向量 (綜合 360° 搖桿與鍵盤)
+            // 移動向量計算
             let moveX = stickVector.x;
             let moveY = stickVector.y;
 
@@ -540,7 +544,6 @@
 
             const inputMag = Math.hypot(moveX, moveY);
 
-            // 3. 玩家移動與面向角度更新
             if (inputMag > 0.15) {
                 const currentAngle = Math.atan2(moveY, moveX);
                 player.facingAngle = currentAngle;
@@ -561,7 +564,7 @@
             player.x = Math.max(margin, Math.min(canvas.width - margin, player.x));
             player.y = Math.max(margin, Math.min(canvas.height - margin, player.y));
 
-            // 4. 怪物生成
+            // 怪物生成
             spawnTimer += dt;
             const currentInterval = Math.max(350, spawnInterval - Math.floor(score / 40) * 70);
             if (spawnTimer >= currentInterval) {
@@ -569,14 +572,14 @@
                 spawnMonster();
             }
 
-            // 5. 怪物邏輯與追逐
+            // 怪物追逐與碰撞 (一擊必殺怪，觸碰玩家扣血)
             monsters.forEach((m, index) => {
                 const angle = Math.atan2(player.y - m.y, player.x - m.x);
                 m.x += Math.cos(angle) * m.speed * timeScale;
                 m.y += Math.sin(angle) * m.speed * timeScale;
 
                 const dist = Math.hypot(player.x - m.x, player.y - m.y);
-                if (dist < player.radius + 12) {
+                if (dist < player.radius + 14) {
                     if (!isDashing) {
                         playerHp -= 15;
                         createParticles(player.x, player.y, '#ff4757', 10);
@@ -590,7 +593,7 @@
                 }
             });
 
-            // 6. 粒子更新
+            // 粒子更新
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.x += p.vx;
@@ -602,7 +605,7 @@
             updateUI();
         }
 
-        // 觸發 B 鍵 - 朝推動方向發動 360° 斬擊！
+        // 觸發 B 鍵 - 朝推動/面向方向發動【精準弧形斬擊】
         function triggerAttack() {
             if (!gameRunning || isAttacking) return;
 
@@ -616,8 +619,7 @@
                 if (kbKeys.up) ky -= 1;
                 if (kbKeys.down) ky += 1;
                 if (kx !== 0 || ky !== 0) {
-                    dirX = kx;
-                    dirY = ky;
+                    dirX = kx; dirY = ky;
                 }
             }
 
@@ -631,35 +633,35 @@
             isAttacking = true;
             attackTimer = ATTACK_DURATION;
 
-            // 360 度弧形斬擊判定
-            const attackRadius = 62;
-            const attackArc = Math.PI * 0.65;
+            // 超精準斬擊判定：幾何圖形精確對齊圖示範圍
+            const monsterBodyRadius = 12; // 怪物體積半徑
 
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
-                const dist = Math.hypot(m.x - player.x, m.y - player.y);
+                const dx = m.x - player.x;
+                const dy = m.y - player.y;
+                const dist = Math.hypot(dx, dy);
 
-                if (dist <= attackRadius) {
-                    const angleToMonster = Math.atan2(m.y - player.y, m.x - player.x);
+                // 距離判定 (包含怪物體積)
+                if (dist <= ATTACK_RADIUS + monsterBodyRadius) {
+                    const angleToMonster = Math.atan2(dy, dx);
                     let angleDiff = Math.abs(angleToMonster - attackAngle);
 
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     angleDiff = Math.abs(angleDiff);
 
-                    if (angleDiff <= attackArc / 2) {
-                        m.hp -= 1;
-                        createParticles(m.x, m.y, m.color, 10);
-
-                        if (m.hp <= 0) {
-                            score += m.score;
-                            monsters.splice(i, 1);
-                        }
+                    // 角度判定：容許小幅度的體積邊緣接觸
+                    if (angleDiff <= (ATTACK_ARC / 2) + 0.18) {
+                        // 怪物一擊必殺！
+                        createParticles(m.x, m.y, m.color, 14);
+                        score += m.score;
+                        monsters.splice(i, 1);
                     }
                 }
             }
         }
 
-        // 觸發 A 鍵 - 朝推動/面向方向衝刺
+        // 觸發 A 鍵 - 衝刺
         function triggerDash() {
             if (dashCooldown > 0 || !gameRunning || isDashing) return;
 
@@ -709,7 +711,7 @@
         function createParticles(x, y, color, count) {
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const spd = (Math.random() * 3 + 1);
+                const spd = (Math.random() * 3.5 + 1.2);
                 particles.push({
                     x: x, y: y,
                     vx: Math.cos(angle) * spd,
@@ -719,6 +721,75 @@
             }
         }
 
+        // 渲染怪物：加上動態怪獸手腳與陰影
+        function drawMonsterWithLimbs(m) {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+
+            // 計算行進中的手腳擺動動畫
+            const walkTime = performance.now() * 0.012 + m.x;
+            const legSwing = Math.sin(walkTime) * 6;
+            const armSwing = Math.cos(walkTime) * 5;
+
+            // 腳部陰影
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            ctx.beginPath();
+            ctx.ellipse(0, 12, 10, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 繪製怪獸雙腳 (火柴手腳風格)
+            ctx.strokeStyle = m.limbColor;
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+
+            // 左腳
+            ctx.beginPath();
+            ctx.moveTo(-5, 6);
+            ctx.lineTo(-7, 14 + legSwing);
+            ctx.stroke();
+
+            // 右腳
+            ctx.beginPath();
+            ctx.moveTo(5, 6);
+            ctx.lineTo(7, 14 - legSwing);
+            ctx.stroke();
+
+            // 腳掌圓點
+            ctx.fillStyle = m.limbColor;
+            ctx.beginPath();
+            ctx.arc(-8, 15 + legSwing, 2.5, 0, Math.PI * 2);
+            ctx.arc(8, 15 - legSwing, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 繪製怪獸雙手
+            // 左手
+            ctx.beginPath();
+            ctx.moveTo(-10, 0);
+            ctx.lineTo(-17, 3 - armSwing);
+            ctx.stroke();
+
+            // 右手
+            ctx.beginPath();
+            ctx.moveTo(10, 0);
+            ctx.lineTo(17, 3 + armSwing);
+            ctx.stroke();
+
+            // 手掌爪子圓點
+            ctx.beginPath();
+            ctx.arc(-18, 3 - armSwing, 2.5, 0, Math.PI * 2);
+            ctx.arc(18, 3 + armSwing, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 中央怪物表情主體 (Emoji)
+            ctx.font = '22px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(m.emoji, 0, 0);
+
+            ctx.restore();
+        }
+
+        // 畫面渲染
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -745,47 +816,35 @@
                 }
             }
 
-            // 2. 360 度斬擊弧光特效
+            // 2. 繪製 360 度精準斬擊弧光 (無外圍白線，自然強光漸層 fade-out)
             if (isAttacking) {
                 ctx.save();
                 ctx.translate(player.x, player.y);
                 ctx.rotate(attackAngle);
 
-                const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, 60);
-                grad.addColorStop(0, 'rgba(255, 71, 87, 0.8)');
-                grad.addColorStop(0.7, 'rgba(255, 165, 2, 0.6)');
+                // 自然漸層弧光 (核心熾紅 -> 橘黃 -> 完全透明)
+                const grad = ctx.createRadialGradient(0, 0, 8, 0, 0, ATTACK_RADIUS);
+                grad.addColorStop(0, 'rgba(255, 50, 70, 0.9)');
+                grad.addColorStop(0.65, 'rgba(255, 170, 0, 0.7)');
+                grad.addColorStop(0.9, 'rgba(255, 220, 0, 0.35)');
                 grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 ctx.fillStyle = grad;
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.arc(0, 0, 60, -Math.PI * 0.33, Math.PI * 0.33);
+                ctx.arc(0, 0, ATTACK_RADIUS, -ATTACK_ARC / 2, ATTACK_ARC / 2);
                 ctx.closePath();
                 ctx.fill();
-
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 0, 56, -Math.PI * 0.3, Math.PI * 0.3);
-                ctx.stroke();
 
                 ctx.restore();
             }
 
-            // 3. 怪物
+            // 3. 繪製食物怪獸 (帶有肢體與手腳)
             monsters.forEach(m => {
-                ctx.font = '22px serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(m.emoji, m.x, m.y);
-
-                if (m.hp > 1) {
-                    ctx.fillStyle = '#ff4757';
-                    ctx.fillRect(m.x - 10, m.y - 16, 20, 3);
-                }
+                drawMonsterWithLimbs(m);
             });
 
-            // 4. 青蛙王子 (👑🐸)
+            // 4. 繪製青蛙王子 (👑🐸)
             ctx.save();
             ctx.translate(player.x, player.y);
 
@@ -796,9 +855,10 @@
             ctx.ellipse(0, 12, 14, 6, 0, 0, Math.PI * 2);
             ctx.fill();
 
+            // 面向方向指標
             ctx.save();
             ctx.rotate(player.facingAngle);
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.85)';
             ctx.beginPath();
             ctx.moveTo(22, 0);
             ctx.lineTo(16, -5);
