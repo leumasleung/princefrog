@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青蛙王子大戰敏感源 - 精準斬擊版</title>
+    <title>青蛙王子大戰敏感</title>
     <style>
         * {
             box-sizing: border-box;
@@ -142,7 +142,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             z-index: 20;
             backdrop-filter: blur(8px);
         }
@@ -345,11 +345,11 @@
         <canvas id="gameCanvas"></canvas>
 
         <div class="overlay" id="startOverlay">
-            <h1>👑 青蛙王子大戰敏感源 🐸</h1>
+            <h1>👑 青蛙王子大戰敏感 🐸</h1>
             <p>
-                <b>怪物皆可一擊必殺！</b><br>
+                <b>🐷 豬公主現身</b>：接觸即親吻，回復 <b>1/10 HP</b>！<br>
                 <b>360° 圓蘑菇搖桿</b>：自由移動<br>
-                <b>推搖桿 + B 鍵</b>：精準角度弧形斬擊！<br>
+                <b>推搖桿 + B 鍵</b>：精準角度弧形斬擊（怪物一擊必殺）<br>
                 <b>A 鍵</b>：高速無敵衝刺閃避！
             </p>
             <button class="btn-start" onclick="startGame()">開始遊戲</button>
@@ -358,7 +358,7 @@
         <div class="overlay" id="gameOverOverlay" style="display: none;">
             <h1 style="color: #ff4757;">GAME OVER</h1>
             <p>最終得分：<b id="finalScore" style="color:#ffd700; font-size: 22px;">0</b></p>
-            <p>青蛙王子被敏感源包圍了！</p>
+            <p>青蛙王子被敏感包圍了！</p>
             <button class="btn-start" onclick="startGame()">再次挑戰</button>
         </div>
     </div>
@@ -399,7 +399,7 @@
         canvas.height = GRID_ROWS * TILE_SIZE; // 396px
 
         // 斬擊幾何精準參數
-        const ATTACK_RADIUS = 68;              // 斬擊半徑 (像素)
+        const ATTACK_RADIUS = 68;              // 斬擊半徑
         const ATTACK_ARC = Math.PI * 0.72;     // 斬擊扇形總角度 (約 130 度)
 
         // 遊戲狀態
@@ -410,6 +410,11 @@
         let lastTime = 0;
         let spawnTimer = 0;
         let spawnInterval = 1100;
+
+        // 豬公主狀態
+        let pigPrincess = null;
+        let pigSpawnTimer = 0;
+        const PIG_SPAWN_INTERVAL = 9000; // 每 9 秒嘗試刷新豬公主
 
         // 衝刺機制
         let dashCooldown = 0;
@@ -444,6 +449,7 @@
         // 怪物與粒子列表
         let monsters = [];
         let particles = [];
+        let textEffects = []; // 飄浮文字特效
 
         // 怪物類型 (全部一擊必殺 hp: 1)
         const MONSTER_TYPES = [
@@ -477,6 +483,10 @@
             playerHp = maxHp;
             monsters = [];
             particles = [];
+            textEffects = [];
+            pigPrincess = null;
+            pigSpawnTimer = 0;
+
             player.x = canvas.width / 2;
             player.y = canvas.height / 2;
             player.facingAngle = -Math.PI / 2;
@@ -572,7 +582,41 @@
                 spawnMonster();
             }
 
-            // 怪物追逐與碰撞 (一擊必殺怪，觸碰玩家扣血)
+            // 豬公主生成與邏輯更新
+            pigSpawnTimer += dt;
+            if (!pigPrincess && pigSpawnTimer >= PIG_SPAWN_INTERVAL) {
+                pigSpawnTimer = 0;
+                if (Math.random() < 0.7) {
+                    spawnPigPrincess();
+                }
+            }
+
+            if (pigPrincess) {
+                pigPrincess.x += pigPrincess.vx * timeScale;
+                pigPrincess.y += pigPrincess.vy * timeScale;
+                pigPrincess.lifeTime -= dt;
+
+                if (pigPrincess.x < 20 || pigPrincess.x > canvas.width - 20) pigPrincess.vx *= -1;
+                if (pigPrincess.y < 20 || pigPrincess.y > canvas.height - 20) pigPrincess.vy *= -1;
+
+                // 觸碰檢測：接觸到豬公主 = 接吻回復 1/10 HP (+10 HP)
+                const distToPlayer = Math.hypot(player.x - pigPrincess.x, player.y - pigPrincess.y);
+                if (distToPlayer < player.radius + 16) {
+                    const healAmount = maxHp * 0.10;
+                    playerHp = Math.min(maxHp, playerHp + healAmount);
+
+                    createHeartParticles(pigPrincess.x, pigPrincess.y, 16);
+                    createTextEffect(pigPrincess.x, pigPrincess.y - 10, "💋 接吻! +10 HP", "#ff7675");
+
+                    pigPrincess = null;
+                    updateUI();
+                } else if (pigPrincess.lifeTime <= 0) {
+                    createParticles(pigPrincess.x, pigPrincess.y, '#fd79a8', 8);
+                    pigPrincess = null;
+                }
+            }
+
+            // 怪物追逐與碰撞
             monsters.forEach((m, index) => {
                 const angle = Math.atan2(player.y - m.y, player.x - m.x);
                 m.x += Math.cos(angle) * m.speed * timeScale;
@@ -602,10 +646,38 @@
                 if (p.alpha <= 0) particles.splice(i, 1);
             }
 
+            // 文字特效更新
+            for (let i = textEffects.length - 1; i >= 0; i--) {
+                const t = textEffects[i];
+                t.y -= 0.8;
+                t.alpha -= 0.025;
+                if (t.alpha <= 0) textEffects.splice(i, 1);
+            }
+
             updateUI();
         }
 
-        // 觸發 B 鍵 - 朝推動/面向方向發動【精準弧形斬擊】
+        function spawnPigPrincess() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            if (side === 0) { x = Math.random() * (canvas.width - 40) + 20; y = 20; }
+            else if (side === 1) { x = Math.random() * (canvas.width - 40) + 20; y = canvas.height - 20; }
+            else if (side === 2) { x = 20; y = Math.random() * (canvas.height - 40) + 20; }
+            else { x = canvas.width - 20; y = Math.random() * (canvas.height - 40) + 20; }
+
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 0.8;
+
+            pigPrincess = {
+                x: x, y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                lifeTime: 8500
+            };
+
+            createTextEffect(x, y - 10, "🐷 豬公主降臨~", "#fd79a8");
+        }
+
         function triggerAttack() {
             if (!gameRunning || isAttacking) return;
 
@@ -633,8 +705,7 @@
             isAttacking = true;
             attackTimer = ATTACK_DURATION;
 
-            // 超精準斬擊判定：幾何圖形精確對齊圖示範圍
-            const monsterBodyRadius = 12; // 怪物體積半徑
+            const monsterBodyRadius = 12;
 
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
@@ -642,7 +713,6 @@
                 const dy = m.y - player.y;
                 const dist = Math.hypot(dx, dy);
 
-                // 距離判定 (包含怪物體積)
                 if (dist <= ATTACK_RADIUS + monsterBodyRadius) {
                     const angleToMonster = Math.atan2(dy, dx);
                     let angleDiff = Math.abs(angleToMonster - attackAngle);
@@ -650,9 +720,7 @@
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     angleDiff = Math.abs(angleDiff);
 
-                    // 角度判定：容許小幅度的體積邊緣接觸
                     if (angleDiff <= (ATTACK_ARC / 2) + 0.18) {
-                        // 怪物一擊必殺！
                         createParticles(m.x, m.y, m.color, 14);
                         score += m.score;
                         monsters.splice(i, 1);
@@ -661,7 +729,6 @@
             }
         }
 
-        // 觸發 A 鍵 - 衝刺
         function triggerDash() {
             if (dashCooldown > 0 || !gameRunning || isDashing) return;
 
@@ -716,71 +783,111 @@
                     x: x, y: y,
                     vx: Math.cos(angle) * spd,
                     vy: Math.sin(angle) * spd,
-                    color: color, alpha: 1
+                    color: color, alpha: 1,
+                    text: null
                 });
             }
         }
 
-        // 渲染怪物：加上動態怪獸手腳與陰影
+        function createHeartParticles(x, y, count) {
+            const emojis = ['💖', '💕', '💋', '✨', '💗'];
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = (Math.random() * 3 + 1);
+                particles.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    alpha: 1,
+                    text: emojis[Math.floor(Math.random() * emojis.length)]
+                });
+            }
+        }
+
+        function createTextEffect(x, y, text, color) {
+            textEffects.push({
+                x: x, y: y,
+                text: text,
+                color: color,
+                alpha: 1
+            });
+        }
+
+        function drawPigPrincess(p) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+
+            const walkTime = performance.now() * 0.01 + p.x;
+            const swing = Math.sin(walkTime) * 4;
+
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 14, 12, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            const pulse = Math.sin(performance.now() * 0.008) * 3;
+            ctx.strokeStyle = 'rgba(253, 121, 168, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18 + pulse, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#fd79a8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-8, 2); ctx.lineTo(-14, 4 + swing);
+            ctx.moveTo(8, 2); ctx.lineTo(14, 4 - swing);
+            ctx.stroke();
+
+            ctx.font = '24px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐷', 0, 2);
+
+            ctx.font = '14px serif';
+            ctx.fillText('👑', 0, -12);
+
+            ctx.restore();
+        }
+
         function drawMonsterWithLimbs(m) {
             ctx.save();
             ctx.translate(m.x, m.y);
 
-            // 計算行進中的手腳擺動動畫
             const walkTime = performance.now() * 0.012 + m.x;
             const legSwing = Math.sin(walkTime) * 6;
             const armSwing = Math.cos(walkTime) * 5;
 
-            // 腳部陰影
             ctx.fillStyle = 'rgba(0,0,0,0.25)';
             ctx.beginPath();
             ctx.ellipse(0, 12, 10, 4, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 繪製怪獸雙腳 (火柴手腳風格)
             ctx.strokeStyle = m.limbColor;
             ctx.lineWidth = 3.5;
             ctx.lineCap = 'round';
 
-            // 左腳
             ctx.beginPath();
-            ctx.moveTo(-5, 6);
-            ctx.lineTo(-7, 14 + legSwing);
+            ctx.moveTo(-5, 6); ctx.lineTo(-7, 14 + legSwing);
+            ctx.moveTo(5, 6); ctx.lineTo(7, 14 - legSwing);
             ctx.stroke();
 
-            // 右腳
-            ctx.beginPath();
-            ctx.moveTo(5, 6);
-            ctx.lineTo(7, 14 - legSwing);
-            ctx.stroke();
-
-            // 腳掌圓點
             ctx.fillStyle = m.limbColor;
             ctx.beginPath();
             ctx.arc(-8, 15 + legSwing, 2.5, 0, Math.PI * 2);
             ctx.arc(8, 15 - legSwing, 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // 繪製怪獸雙手
-            // 左手
             ctx.beginPath();
-            ctx.moveTo(-10, 0);
-            ctx.lineTo(-17, 3 - armSwing);
+            ctx.moveTo(-10, 0); ctx.lineTo(-17, 3 - armSwing);
+            ctx.moveTo(10, 0); ctx.lineTo(17, 3 + armSwing);
             ctx.stroke();
 
-            // 右手
-            ctx.beginPath();
-            ctx.moveTo(10, 0);
-            ctx.lineTo(17, 3 + armSwing);
-            ctx.stroke();
-
-            // 手掌爪子圓點
             ctx.beginPath();
             ctx.arc(-18, 3 - armSwing, 2.5, 0, Math.PI * 2);
             ctx.arc(18, 3 + armSwing, 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // 中央怪物表情主體 (Emoji)
             ctx.font = '22px serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -789,11 +896,9 @@
             ctx.restore();
         }
 
-        // 畫面渲染
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. 草地背景
             for (let r = 0; r < GRID_ROWS; r++) {
                 for (let c = 0; c < GRID_COLS; c++) {
                     const tile = mapTiles[r][c];
@@ -816,13 +921,11 @@
                 }
             }
 
-            // 2. 繪製 360 度精準斬擊弧光 (無外圍白線，自然強光漸層 fade-out)
             if (isAttacking) {
                 ctx.save();
                 ctx.translate(player.x, player.y);
                 ctx.rotate(attackAngle);
 
-                // 自然漸層弧光 (核心熾紅 -> 橘黃 -> 完全透明)
                 const grad = ctx.createRadialGradient(0, 0, 8, 0, 0, ATTACK_RADIUS);
                 grad.addColorStop(0, 'rgba(255, 50, 70, 0.9)');
                 grad.addColorStop(0.65, 'rgba(255, 170, 0, 0.7)');
@@ -839,12 +942,14 @@
                 ctx.restore();
             }
 
-            // 3. 繪製敏感源獸 (帶有肢體與手腳)
+            if (pigPrincess) {
+                drawPigPrincess(pigPrincess);
+            }
+
             monsters.forEach(m => {
                 drawMonsterWithLimbs(m);
             });
 
-            // 4. 繪製青蛙王子 (👑🐸)
             ctx.save();
             ctx.translate(player.x, player.y);
 
@@ -855,7 +960,6 @@
             ctx.ellipse(0, 12, 14, 6, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 面向方向指標
             ctx.save();
             ctx.rotate(player.facingAngle);
             ctx.fillStyle = 'rgba(255, 215, 0, 0.85)';
@@ -877,12 +981,26 @@
 
             ctx.restore();
 
-            // 5. 粒子
             particles.forEach(p => {
                 ctx.save();
                 ctx.globalAlpha = p.alpha;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 4, 4);
+                if (p.text) {
+                    ctx.font = '16px serif';
+                    ctx.fillText(p.text, p.x, p.y);
+                } else {
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, 4, 4);
+                }
+                ctx.restore();
+            });
+
+            textEffects.forEach(t => {
+                ctx.save();
+                ctx.globalAlpha = t.alpha;
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillStyle = t.color;
+                ctx.textAlign = 'center';
+                ctx.fillText(t.text, t.x, t.y);
                 ctx.restore();
             });
         }
@@ -900,7 +1018,6 @@
             document.getElementById('gameOverOverlay').style.display = 'flex';
         }
 
-        // 360 度 PS5 搖桿邏輯
         function setupJoystick() {
             const joyBase = document.getElementById('joystickBase');
             const joyKnob = document.getElementById('joystickKnob');
