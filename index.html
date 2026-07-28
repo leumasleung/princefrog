@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青蛙王子大戰食物怪 - Grid Arcade</title>
+    <title>青蛙王子大戰食物怪 - PS5 搖桿版</title>
     <style>
         * {
             box-sizing: border-box;
@@ -15,9 +15,9 @@
         }
 
         body {
-            background-color: #1a1a24;
+            background-color: #121219;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,13 +31,13 @@
         .header {
             width: 100%;
             max-width: 480px;
-            padding: 8px 16px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #252538;
-            border-bottom: 2px solid #3d3d5c;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            background: #1e1e2d;
+            border-bottom: 2px solid #33334d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             z-index: 10;
         }
 
@@ -49,22 +49,24 @@
 
         .stat-label {
             font-size: 11px;
-            color: #a0a0c0;
+            color: #8f8fae;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
         }
 
         .stat-value {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 800;
             color: #ffd700;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         /* 血條 */
         .hp-bar-outer {
-            width: 110px;
+            width: 120px;
             height: 14px;
-            background: #441111;
+            background: #2a1515;
             border: 2px solid #ff4444;
             border-radius: 8px;
             overflow: hidden;
@@ -75,28 +77,30 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, #ff4444, #ff8800);
-            transition: width 0.2s ease;
+            transition: width 0.15s ease;
         }
 
         /* 衝刺 CD 指示器 */
         .cd-box {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             font-size: 12px;
             color: #00e5ff;
+            font-weight: 600;
         }
 
         .cd-indicator {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: #00e5ff;
-            box-shadow: 0 0 8px #00e5ff;
+            box-shadow: 0 0 10px #00e5ff;
+            transition: background 0.2s, box-shadow 0.2s;
         }
 
         .cd-indicator.charging {
-            background: #555;
+            background: #444455;
             box-shadow: none;
         }
 
@@ -115,10 +119,10 @@
         canvas {
             background-color: #2d5a27;
             border: 4px solid #4a3000;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
             display: block;
-            image-rendering: pixelated;
+            touch-action: none;
         }
 
         /* Game Over / Start Overlay */
@@ -127,44 +131,45 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(15, 15, 25, 0.92);
-            border: 3px solid #ffd700;
-            border-radius: 16px;
+            background: rgba(18, 18, 28, 0.95);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
             padding: 24px;
             text-align: center;
-            width: 85%;
+            width: 88%;
             max-width: 360px;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.25);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             z-index: 20;
+            backdrop-filter: blur(8px);
         }
 
         .overlay h1 {
             font-size: 22px;
             color: #ffd700;
-            text-shadow: 2px 2px 0 #000;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         .overlay p {
-            font-size: 14px;
-            color: #d0d0e0;
-            line-height: 1.5;
+            font-size: 13px;
+            color: #c0c0e0;
+            line-height: 1.6;
         }
 
         .btn-start {
-            background: linear-gradient(180deg, #4caf50, #2e7d32);
+            background: linear-gradient(180deg, #00b894, #00876c);
             color: white;
             border: none;
-            padding: 12px 28px;
-            font-size: 18px;
+            padding: 12px 32px;
+            font-size: 17px;
             font-weight: bold;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            transition: transform 0.1s;
+            box-shadow: 0 4px 15px rgba(0,184,148,0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
         .btn-start:active {
@@ -175,62 +180,94 @@
         .controller {
             width: 100%;
             max-width: 480px;
-            height: 210px;
-            background: #232332;
-            border-top: 3px solid #3d3d5c;
+            height: 220px;
+            background: #181824;
+            border-top: 2px solid #2e2e42;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 24px 20px 24px;
+            padding: 10px 28px 15px 28px;
             box-sizing: border-box;
+            position: relative;
         }
 
-        /* 十字鍵 D-Pad */
-        .dpad-container {
+        /* PS5 風格 360 度圓蘑菇搖桿 (Thumbstick) */
+        .joystick-container {
             position: relative;
             width: 130px;
             height: 130px;
-        }
-
-        .dpad-btn {
-            position: absolute;
-            background: #3b3b54;
-            border: 2px solid #5a5a7d;
-            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
-            color: #aaa;
-            box-shadow: inset 0 2px 0 rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.4);
-            cursor: pointer;
+        }
+
+        .joystick-base {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2a3c 0%, #171722 100%);
+            border: 3px solid #3d3d5c;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 6px 12px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             touch-action: none;
         }
 
-        .dpad-btn:active, .dpad-btn.active {
-            background: #6c5ce7;
-            color: #fff;
-            border-color: #a29bfe;
-            transform: translateY(2px);
+        .joystick-base::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            pointer-events: none;
         }
 
-        .dpad-up { top: 0; left: 43px; width: 44px; height: 46px; border-radius: 8px 8px 0 0; }
-        .dpad-down { bottom: 0; left: 43px; width: 44px; height: 46px; border-radius: 0 0 8px 8px; }
-        .dpad-left { top: 43px; left: 0; width: 46px; height: 44px; border-radius: 8px 0 0 8px; }
-        .dpad-right { top: 43px; right: 0; width: 46px; height: 44px; border-radius: 0 8px 8px 0; }
-        .dpad-center { top: 43px; left: 43px; width: 44px; height: 44px; background: #2f2f45; border: none; box-shadow: none; }
+        .joystick-knob {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #4a4a68 0%, #222233 70%, #151522 100%);
+            border: 2px solid #6c5ce7;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.25), 0 0 12px rgba(108, 92, 231, 0.4);
+            cursor: pointer;
+            pointer-events: none;
+            transition: background 0.1s, border-color 0.1s;
+        }
+
+        .joystick-knob::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #191926;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .joystick-base.active .joystick-knob {
+            border-color: #00e5ff;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.4), 0 0 18px rgba(0, 229, 255, 0.6);
+        }
 
         /* A B 按鈕群 */
         .action-buttons {
             display: flex;
-            gap: 16px;
+            gap: 18px;
             align-items: center;
-            transform: rotate(-12deg);
+            transform: rotate(-10deg);
         }
 
         .btn-action {
-            width: 62px;
-            height: 62px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             display: flex;
             flex-direction: column;
@@ -238,36 +275,48 @@
             align-items: center;
             font-weight: bold;
             color: white;
-            box-shadow: inset 0 3px 0 rgba(255,255,255,0.3), 0 6px 10px rgba(0,0,0,0.5);
+            box-shadow: inset 0 3px 0 rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6);
             cursor: pointer;
             touch-action: none;
-            border: 3px solid rgba(0,0,0,0.3);
+            border: 3px solid rgba(0,0,0,0.4);
+            position: relative;
         }
 
         .btn-action:active, .btn-action.active {
             transform: translateY(3px);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.6);
         }
 
         .btn-b {
-            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            background: linear-gradient(145deg, #ff4757, #c0392b);
         }
 
         .btn-a {
-            background: linear-gradient(145deg, #3498db, #2980b9);
-            margin-top: -20px;
+            background: linear-gradient(145deg, #1e90ff, #0056b3);
+            margin-top: -22px;
         }
 
         .btn-action span {
-            font-size: 20px;
+            font-size: 22px;
             line-height: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .btn-action .sub-text {
             font-size: 9px;
             margin-top: 2px;
-            opacity: 0.8;
-            font-weight: normal;
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+        .controls-tip {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666688;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -297,13 +346,17 @@
 
         <div class="overlay" id="startOverlay">
             <h1>👑 青蛙王子大戰食物怪 🐸</h1>
-            <p>怪物大軍來襲！<br>使用<b>十字鍵</b>移動，<b>B鍵</b>發動舌鞭攻擊，<b>A鍵</b>向前衝刺閃避！</p>
+            <p>
+                <b>360° 圓蘑菇搖桿</b>：自由向全方向移動<br>
+                <b>推搖桿 + 按 B 鍵</b>：朝推動方向斬擊！<br>
+                <b>A 鍵</b>：向面對方向快速衝刺閃避！
+            </p>
             <button class="btn-start" onclick="startGame()">開始遊戲</button>
         </div>
 
         <div class="overlay" id="gameOverOverlay" style="display: none;">
-            <h1 style="color: #ff4444;">GAME OVER</h1>
-            <p>最終得分：<b id="finalScore" style="color:#ffd700; font-size: 20px;">0</b></p>
+            <h1 style="color: #ff4757;">GAME OVER</h1>
+            <p>最終得分：<b id="finalScore" style="color:#ffd700; font-size: 22px;">0</b></p>
             <p>青蛙王子被食物怪包圍了！</p>
             <button class="btn-start" onclick="startGame()">再次挑戰</button>
         </div>
@@ -311,36 +364,36 @@
 
     <!-- 虛擬掌機控制器 -->
     <div class="controller">
-        <!-- 十字鍵 -->
-        <div class="dpad-container">
-            <div class="dpad-btn dpad-up" id="btnUp">▲</div>
-            <div class="dpad-btn dpad-left" id="btnLeft">◀</div>
-            <div class="dpad-btn dpad-center"></div>
-            <div class="dpad-btn dpad-right" id="btnRight">▶</div>
-            <div class="dpad-btn dpad-down" id="btnDown">▼</div>
+        <!-- 360 度 PS5 風格圓蘑菇搖桿 -->
+        <div class="joystick-container">
+            <div class="joystick-base" id="joystickBase">
+                <div class="joystick-knob" id="joystickKnob"></div>
+            </div>
         </div>
 
         <!-- B / A 鍵 -->
         <div class="action-buttons">
             <div class="btn-action btn-b" id="btnB">
                 <span>B</span>
-                <span class="sub-text">攻擊</span>
+                <span class="sub-text">斬擊</span>
             </div>
             <div class="btn-action btn-a" id="btnA">
                 <span>A</span>
                 <span class="sub-text">衝刺</span>
             </div>
         </div>
+
+        <div class="controls-tip">鍵盤支援: WASD/方向鍵移動 | Z/J 斬擊 | X/K 衝刺</div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // 固定方格大小設計
+        // 地圖固定方格設定 (11x11 網格視覺)
         const GRID_COLS = 11;
         const GRID_ROWS = 11;
-        const TILE_SIZE = 36; // 每個方格 36x36 像素
+        const TILE_SIZE = 36; 
         canvas.width = GRID_COLS * TILE_SIZE;  // 396px
         canvas.height = GRID_ROWS * TILE_SIZE; // 396px
 
@@ -351,58 +404,62 @@
         let maxHp = 100;
         let lastTime = 0;
         let spawnTimer = 0;
-        let spawnInterval = 1200; // 毫秒
+        let spawnInterval = 1100;
 
         // 衝刺機制
         let dashCooldown = 0;
-        const DASH_COOLDOWN_MAX = 1500; // 1.5 秒
+        const DASH_COOLDOWN_MAX = 1400; // 1.4 秒
         let isDashing = false;
         let dashTimer = 0;
-        const DASH_DURATION = 180;
+        const DASH_DURATION = 160;
 
-        // 攻擊機制
+        // 斬擊/攻擊機制
         let isAttacking = false;
         let attackTimer = 0;
-        const ATTACK_DURATION = 200;
-        let attackDir = { x: 0, y: -1 };
+        const ATTACK_DURATION = 220;
+        let attackAngle = -Math.PI / 2; // 預設朝上
 
-        // 方向控制狀態
-        const keys = { up: false, down: false, left: false, right: false };
+        // 360 度搖桿狀態 Vector (-1 ~ 1)
+        let stickVector = { x: 0, y: 0 };
+        let stickActive = false;
+        let joystickTouchId = null;
 
-        // 青蛙王子物件
+        // 鍵盤狀態
+        const kbKeys = { up: false, down: false, left: false, right: false };
+
+        // 主角 - 青蛙王子 (360 度自由移動)
         const player = {
-            gridX: 5, gridY: 5,
-            x: 5 * TILE_SIZE, y: 5 * TILE_SIZE,
-            targetX: 5 * TILE_SIZE, targetY: 5 * TILE_SIZE,
-            dirX: 0, dirY: -1,
-            moveSpeed: 0.25
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 14,
+            speed: 2.8,
+            facingAngle: -Math.PI / 2
         };
 
-        // 怪物列表與粒子
+        // 怪物與粒子列表
         let monsters = [];
         let particles = [];
 
-        // 怪物類型定義
+        // 怪物類型
         const MONSTER_TYPES = [
-            { type: 'egg', emoji: '🥚', hp: 1, speed: 0.04, score: 10, color: '#f5f6fa' },
-            { type: 'milk', emoji: '🥛', hp: 1, speed: 0.07, score: 15, color: '#dcdde1' },
-            { type: 'shroom', emoji: '🍄', hp: 2, speed: 0.035, score: 25, color: '#e74c3c' },
-            { type: 'cheese', emoji: '🧀', hp: 1, speed: 0.05, score: 20, color: '#f1c40f' }
+            { type: 'egg', emoji: '🥚', hp: 1, speed: 1.1, score: 10, color: '#f5f6fa' },
+            { type: 'milk', emoji: '🥛', hp: 1, speed: 1.8, score: 15, color: '#dcdde1' },
+            { type: 'shroom', emoji: '🍄', hp: 2, speed: 0.9, score: 25, color: '#e74c3c' },
+            { type: 'cheese', emoji: '🧀', hp: 1, speed: 1.4, score: 20, color: '#f1c40f' }
         ];
 
-        // 地圖背景方格細節
+        // 靜態生成草地方格
         const mapTiles = [];
         for (let r = 0; r < GRID_ROWS; r++) {
             mapTiles[r] = [];
             for (let c = 0; c < GRID_COLS; c++) {
                 const isBorder = (r === 0 || r === GRID_ROWS - 1 || c === 0 || c === GRID_COLS - 1);
-                const randomVal = Math.random();
+                const rand = Math.random();
                 let detail = null;
-                if (!isBorder && randomVal < 0.15) detail = 'flower';
-                else if (!isBorder && randomVal < 0.25) detail = 'pebble';
+                if (!isBorder && rand < 0.12) detail = 'flower';
+                else if (!isBorder && rand < 0.22) detail = 'pebble';
 
                 mapTiles[r][c] = {
-                    isBorder: isBorder,
                     shade: (r + c) % 2 === 0 ? '#34682c' : '#2d5a27',
                     detail: detail
                 };
@@ -415,12 +472,11 @@
             playerHp = maxHp;
             monsters = [];
             particles = [];
-            player.gridX = 5; player.gridY = 5;
-            player.x = 5 * TILE_SIZE; player.y = 5 * TILE_SIZE;
-            player.targetX = player.x; player.targetY = player.y;
-            player.dirX = 0; player.dirY = -1;
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.facingAngle = -Math.PI / 2;
             dashCooldown = 0;
-            spawnInterval = 1200;
+            spawnInterval = 1100;
 
             document.getElementById('startOverlay').style.display = 'none';
             document.getElementById('gameOverOverlay').style.display = 'none';
@@ -431,8 +487,10 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // 主遊戲循環
         function gameLoop(timestamp) {
             if (!gameRunning) return;
+
             const dt = timestamp - lastTime;
             lastTime = timestamp;
 
@@ -442,71 +500,86 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // 邏輯更新
         function update(dt) {
+            const timeScale = dt / 16.66;
+
+            // 1. 冷卻與狀態計時
             if (dashCooldown > 0) {
                 dashCooldown -= dt;
                 if (dashCooldown < 0) dashCooldown = 0;
             }
+
             if (isDashing) {
                 dashTimer -= dt;
                 if (dashTimer <= 0) isDashing = false;
             }
+
             if (isAttacking) {
                 attackTimer -= dt;
                 if (attackTimer <= 0) isAttacking = false;
             }
 
-            // 網格移動邏輯
-            if (!isDashing && player.x === player.targetX && player.y === player.targetY) {
-                let dx = 0, dy = 0;
-                if (keys.up) dy = -1;
-                else if (keys.down) dy = 1;
-                else if (keys.left) dx = -1;
-                else if (keys.right) dx = 1;
+            // 2. 計算輸入方向向量 (綜合 360° 搖桿與鍵盤)
+            let moveX = stickVector.x;
+            let moveY = stickVector.y;
 
-                if (dx !== 0 || dy !== 0) {
-                    player.dirX = dx; player.dirY = dy;
-                    const nextGridX = player.gridX + dx;
-                    const nextGridY = player.gridY + dy;
+            if (!stickActive) {
+                let kx = 0, ky = 0;
+                if (kbKeys.left) kx -= 1;
+                if (kbKeys.right) kx += 1;
+                if (kbKeys.up) ky -= 1;
+                if (kbKeys.down) ky += 1;
 
-                    if (nextGridX >= 0 && nextGridX < GRID_COLS && nextGridY >= 0 && nextGridY < GRID_ROWS) {
-                        player.gridX = nextGridX;
-                        player.gridY = nextGridY;
-                        player.targetX = player.gridX * TILE_SIZE;
-                        player.targetY = player.gridY * TILE_SIZE;
-                    }
+                if (kx !== 0 || ky !== 0) {
+                    const len = Math.hypot(kx, ky);
+                    moveX = kx / len;
+                    moveY = ky / len;
                 }
             }
 
-            const moveSpeed = isDashing ? player.moveSpeed * 3 : player.moveSpeed;
-            player.x += (player.targetX - player.x) * moveSpeed * (dt / 16);
-            player.y += (player.targetY - player.y) * moveSpeed * (dt / 16);
+            const inputMag = Math.hypot(moveX, moveY);
 
-            if (Math.abs(player.x - player.targetX) < 1) player.x = player.targetX;
-            if (Math.abs(player.y - player.targetY) < 1) player.y = player.targetY;
+            // 3. 玩家移動與面向角度更新
+            if (inputMag > 0.15) {
+                const currentAngle = Math.atan2(moveY, moveX);
+                player.facingAngle = currentAngle;
 
-            // 生成怪物
+                const speedMultiplier = isDashing ? 3.5 : 1.0;
+                const currentSpeed = player.speed * speedMultiplier * timeScale;
+
+                player.x += moveX * currentSpeed;
+                player.y += moveY * currentSpeed;
+            } else if (isDashing) {
+                const currentSpeed = player.speed * 3.5 * timeScale;
+                player.x += Math.cos(player.facingAngle) * currentSpeed;
+                player.y += Math.sin(player.facingAngle) * currentSpeed;
+            }
+
+            // 邊界限制
+            const margin = 18;
+            player.x = Math.max(margin, Math.min(canvas.width - margin, player.x));
+            player.y = Math.max(margin, Math.min(canvas.height - margin, player.y));
+
+            // 4. 怪物生成
             spawnTimer += dt;
-            const currentInterval = Math.max(400, spawnInterval - Math.floor(score / 50) * 80);
+            const currentInterval = Math.max(350, spawnInterval - Math.floor(score / 40) * 70);
             if (spawnTimer >= currentInterval) {
                 spawnTimer = 0;
                 spawnMonster();
             }
 
-            // 怪物追逐與碰撞
+            // 5. 怪物邏輯與追逐
             monsters.forEach((m, index) => {
-                const targetPixelX = player.gridX * TILE_SIZE;
-                const targetPixelY = player.gridY * TILE_SIZE;
+                const angle = Math.atan2(player.y - m.y, player.x - m.x);
+                m.x += Math.cos(angle) * m.speed * timeScale;
+                m.y += Math.sin(angle) * m.speed * timeScale;
 
-                const angle = Math.atan2(targetPixelY - m.y, targetPixelX - m.x);
-                m.x += Math.cos(angle) * m.speed * TILE_SIZE * (dt / 16);
-                m.y += Math.sin(angle) * m.speed * TILE_SIZE * (dt / 16);
-
-                const distSq = (m.x - player.x) ** 2 + (m.y - player.y) ** 2;
-                if (distSq < (TILE_SIZE * 0.7) ** 2) {
+                const dist = Math.hypot(player.x - m.x, player.y - m.y);
+                if (dist < player.radius + 12) {
                     if (!isDashing) {
                         playerHp -= 15;
-                        createParticles(player.x + TILE_SIZE/2, player.y + TILE_SIZE/2, '#ff4444', 8);
+                        createParticles(player.x, player.y, '#ff4757', 10);
                         monsters.splice(index, 1);
                         if (playerHp <= 0) {
                             playerHp = 0;
@@ -517,89 +590,130 @@
                 }
             });
 
-            // 粒子更新
+            // 6. 粒子更新
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.x += p.vx; p.y += p.vy; p.alpha -= 0.04;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.04;
                 if (p.alpha <= 0) particles.splice(i, 1);
             }
 
             updateUI();
         }
 
-        // A 鍵：衝刺
-        function triggerDash() {
-            if (dashCooldown > 0 || !gameRunning || isDashing) return;
-
-            isDashing = true;
-            dashTimer = DASH_DURATION;
-            dashCooldown = DASH_COOLDOWN_MAX;
-
-            let targetGX = Math.max(0, Math.min(GRID_COLS - 1, player.gridX + player.dirX * 2));
-            let targetGY = Math.max(0, Math.min(GRID_ROWS - 1, player.gridY + player.dirY * 2));
-
-            player.gridX = targetGX; player.gridY = targetGY;
-            player.targetX = player.gridX * TILE_SIZE;
-            player.targetY = player.gridY * TILE_SIZE;
-
-            createParticles(player.x + TILE_SIZE/2, player.y + TILE_SIZE/2, '#00e5ff', 12);
-        }
-
-        // B 鍵：攻擊
+        // 觸發 B 鍵 - 朝推動方向發動 360° 斬擊！
         function triggerAttack() {
             if (!gameRunning || isAttacking) return;
 
+            let dirX = stickVector.x;
+            let dirY = stickVector.y;
+
+            if (!stickActive) {
+                let kx = 0, ky = 0;
+                if (kbKeys.left) kx -= 1;
+                if (kbKeys.right) kx += 1;
+                if (kbKeys.up) ky -= 1;
+                if (kbKeys.down) ky += 1;
+                if (kx !== 0 || ky !== 0) {
+                    dirX = kx;
+                    dirY = ky;
+                }
+            }
+
+            if (Math.hypot(dirX, dirY) > 0.15) {
+                attackAngle = Math.atan2(dirY, dirX);
+                player.facingAngle = attackAngle;
+            } else {
+                attackAngle = player.facingAngle;
+            }
+
             isAttacking = true;
             attackTimer = ATTACK_DURATION;
-            attackDir = { x: player.dirX, y: player.dirY };
 
-            const attackBox = {
-                x: player.x + attackDir.x * TILE_SIZE - TILE_SIZE / 2,
-                y: player.y + attackDir.y * TILE_SIZE - TILE_SIZE / 2,
-                width: TILE_SIZE * 2, height: TILE_SIZE * 2
-            };
+            // 360 度弧形斬擊判定
+            const attackRadius = 62;
+            const attackArc = Math.PI * 0.65;
 
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
-                if (m.x >= attackBox.x && m.x <= attackBox.x + attackBox.width &&
-                    m.y >= attackBox.y && m.y <= attackBox.y + attackBox.height) {
-                    m.hp -= 1;
-                    createParticles(m.x + TILE_SIZE/2, m.y + TILE_SIZE/2, m.color, 10);
-                    if (m.hp <= 0) {
-                        score += m.score;
-                        monsters.splice(i, 1);
+                const dist = Math.hypot(m.x - player.x, m.y - player.y);
+
+                if (dist <= attackRadius) {
+                    const angleToMonster = Math.atan2(m.y - player.y, m.x - player.x);
+                    let angleDiff = Math.abs(angleToMonster - attackAngle);
+
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    angleDiff = Math.abs(angleDiff);
+
+                    if (angleDiff <= attackArc / 2) {
+                        m.hp -= 1;
+                        createParticles(m.x, m.y, m.color, 10);
+
+                        if (m.hp <= 0) {
+                            score += m.score;
+                            monsters.splice(i, 1);
+                        }
                     }
                 }
             }
         }
 
+        // 觸發 A 鍵 - 朝推動/面向方向衝刺
+        function triggerDash() {
+            if (dashCooldown > 0 || !gameRunning || isDashing) return;
+
+            let dirX = stickVector.x;
+            let dirY = stickVector.y;
+
+            if (!stickActive) {
+                let kx = 0, ky = 0;
+                if (kbKeys.left) kx -= 1;
+                if (kbKeys.right) kx += 1;
+                if (kbKeys.up) ky -= 1;
+                if (kbKeys.down) ky += 1;
+                if (kx !== 0 || ky !== 0) {
+                    dirX = kx; dirY = ky;
+                }
+            }
+
+            if (Math.hypot(dirX, dirY) > 0.15) {
+                player.facingAngle = Math.atan2(dirY, dirX);
+            }
+
+            isDashing = true;
+            dashTimer = DASH_DURATION;
+            dashCooldown = DASH_COOLDOWN_MAX;
+
+            createParticles(player.x, player.y, '#00e5ff', 15);
+        }
+
         function spawnMonster() {
-            let gx, gy;
+            let x, y;
             const side = Math.floor(Math.random() * 4);
-            if (side === 0) { gx = Math.floor(Math.random() * GRID_COLS); gy = 0; }
-            else if (side === 1) { gx = Math.floor(Math.random() * GRID_COLS); gy = GRID_ROWS - 1; }
-            else if (side === 2) { gx = 0; gy = Math.floor(Math.random() * GRID_ROWS); }
-            else { gx = GRID_COLS - 1; gy = Math.floor(Math.random() * GRID_ROWS); }
+            if (side === 0) { x = Math.random() * canvas.width; y = -10; }
+            else if (side === 1) { x = Math.random() * canvas.width; y = canvas.height + 10; }
+            else if (side === 2) { x = -10; y = Math.random() * canvas.height; }
+            else { x = canvas.width + 10; y = Math.random() * canvas.height; }
 
             let typeIdx = 0;
             const rand = Math.random();
-            if (score > 100 && rand > 0.6) typeIdx = 3;
-            else if (score > 60 && rand > 0.4) typeIdx = 2;
-            else if (score > 30 && rand > 0.3) typeIdx = 1;
+            if (score > 120 && rand > 0.6) typeIdx = 3;
+            else if (score > 70 && rand > 0.4) typeIdx = 2;
+            else if (score > 35 && rand > 0.3) typeIdx = 1;
 
             const template = MONSTER_TYPES[typeIdx];
-            monsters.push({
-                ...template,
-                x: gx * TILE_SIZE, y: gy * TILE_SIZE,
-                gridX: gx, gridY: gy
-            });
+            monsters.push({ ...template, x: x, y: y });
         }
 
         function createParticles(x, y, color, count) {
             for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = (Math.random() * 3 + 1);
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
                     color: color, alpha: 1
                 });
             }
@@ -608,56 +722,99 @@
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. 網格背景
+            // 1. 草地背景
             for (let r = 0; r < GRID_ROWS; r++) {
                 for (let c = 0; c < GRID_COLS; c++) {
                     const tile = mapTiles[r][c];
                     ctx.fillStyle = tile.shade;
                     ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+                    ctx.lineWidth = 1;
                     ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
                     if (tile.detail === 'flower') {
                         ctx.fillStyle = '#ffda79';
                         ctx.beginPath();
-                        ctx.arc(c * TILE_SIZE + 18, r * TILE_SIZE + 18, 3, 0, Math.PI * 2);
+                        ctx.arc(c * TILE_SIZE + 18, r * TILE_SIZE + 18, 2.5, 0, Math.PI * 2);
                         ctx.fill();
                     } else if (tile.detail === 'pebble') {
                         ctx.fillStyle = '#1e3799';
-                        ctx.fillRect(c * TILE_SIZE + 14, r * TILE_SIZE + 22, 4, 3);
+                        ctx.fillRect(c * TILE_SIZE + 14, r * TILE_SIZE + 22, 3, 2);
                     }
                 }
             }
 
-            // 2. 攻擊特效
+            // 2. 360 度斬擊弧光特效
             if (isAttacking) {
                 ctx.save();
-                ctx.fillStyle = 'rgba(255, 107, 129, 0.7)';
-                const atkX = player.x + attackDir.x * TILE_SIZE;
-                const atkY = player.y + attackDir.y * TILE_SIZE;
+                ctx.translate(player.x, player.y);
+                ctx.rotate(attackAngle);
+
+                const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, 60);
+                grad.addColorStop(0, 'rgba(255, 71, 87, 0.8)');
+                grad.addColorStop(0.7, 'rgba(255, 165, 2, 0.6)');
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.arc(atkX + TILE_SIZE/2, atkY + TILE_SIZE/2, TILE_SIZE * 0.8, 0, Math.PI * 2);
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, 60, -Math.PI * 0.33, Math.PI * 0.33);
+                ctx.closePath();
                 ctx.fill();
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 56, -Math.PI * 0.3, Math.PI * 0.3);
+                ctx.stroke();
+
                 ctx.restore();
             }
 
             // 3. 怪物
             monsters.forEach(m => {
-                ctx.font = '24px serif';
+                ctx.font = '22px serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(m.emoji, m.x + TILE_SIZE / 2, m.y + TILE_SIZE / 2 + 2);
+                ctx.fillText(m.emoji, m.x, m.y);
+
+                if (m.hp > 1) {
+                    ctx.fillStyle = '#ff4757';
+                    ctx.fillRect(m.x - 10, m.y - 16, 20, 3);
+                }
             });
 
             // 4. 青蛙王子 (👑🐸)
             ctx.save();
-            if (isDashing) ctx.globalAlpha = 0.6;
+            ctx.translate(player.x, player.y);
+
+            if (isDashing) ctx.globalAlpha = 0.5;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 12, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.save();
+            ctx.rotate(player.facingAngle);
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+            ctx.beginPath();
+            ctx.moveTo(22, 0);
+            ctx.lineTo(16, -5);
+            ctx.lineTo(16, 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
             ctx.font = '26px serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('🐸', player.x + TILE_SIZE / 2, player.y + TILE_SIZE / 2 + 2);
+            ctx.fillText('🐸', 0, 2);
+
             ctx.font = '14px serif';
-            ctx.fillText('👑', player.x + TILE_SIZE / 2, player.y + 6);
+            ctx.fillText('👑', 0, -12);
+
             ctx.restore();
 
             // 5. 粒子
@@ -683,31 +840,131 @@
             document.getElementById('gameOverOverlay').style.display = 'flex';
         }
 
+        // 360 度 PS5 搖桿邏輯
+        function setupJoystick() {
+            const joyBase = document.getElementById('joystickBase');
+            const joyKnob = document.getElementById('joystickKnob');
+            const maxRadius = 38;
+
+            function updateJoystickPos(clientX, clientY) {
+                const rect = joyBase.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                let dx = clientX - centerX;
+                let dy = clientY - centerY;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > maxRadius) {
+                    dx = (dx / dist) * maxRadius;
+                    dy = (dy / dist) * maxRadius;
+                }
+
+                joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+
+                const normX = dx / maxRadius;
+                const normY = dy / maxRadius;
+                const mag = Math.hypot(normX, normY);
+
+                if (mag > 0.15) {
+                    stickVector.x = normX;
+                    stickVector.y = normY;
+                    stickActive = true;
+                    joyBase.classList.add('active');
+                } else {
+                    stickVector.x = 0;
+                    stickVector.y = 0;
+                    stickActive = false;
+                    joyBase.classList.remove('active');
+                }
+            }
+
+            function resetJoystick() {
+                joyKnob.style.transform = 'translate(0px, 0px)';
+                stickVector.x = 0;
+                stickVector.y = 0;
+                stickActive = false;
+                joystickTouchId = null;
+                joyBase.classList.remove('active');
+            }
+
+            joyBase.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (joystickTouchId !== null) return;
+                const touch = e.changedTouches[0];
+                joystickTouchId = touch.identifier;
+                updateJoystickPos(touch.clientX, touch.clientY);
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === joystickTouchId) {
+                        updateJoystickPos(touch.clientX, touch.clientY);
+                        break;
+                    }
+                }
+            });
+
+            window.addEventListener('touchend', (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === joystickTouchId) {
+                        resetJoystick();
+                        break;
+                    }
+                }
+            });
+
+            window.addEventListener('touchcancel', (e) => {
+                if (joystickTouchId === null) return;
+                resetJoystick();
+            });
+
+            let isMouseDown = false;
+            joyBase.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isMouseDown = true;
+                updateJoystickPos(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isMouseDown) updateJoystickPos(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isMouseDown) {
+                    isMouseDown = false;
+                    resetJoystick();
+                }
+            });
+        }
+
         function setupControls() {
-            const bindBtn = (id, start, end) => {
+            setupJoystick();
+
+            const bindBtn = (id, action) => {
                 const btn = document.getElementById(id);
-                const hStart = (e) => { e.preventDefault(); btn.classList.add('active'); start(); };
-                const hEnd = (e) => { e.preventDefault(); btn.classList.remove('active'); if(end) end(); };
-                btn.addEventListener('touchstart', hStart);
-                btn.addEventListener('touchend', hEnd);
-                btn.addEventListener('mousedown', hStart);
-                btn.addEventListener('mouseup', hEnd);
+                const handleStart = (e) => { e.preventDefault(); btn.classList.add('active'); action(); };
+                const handleEnd = (e) => { e.preventDefault(); btn.classList.remove('active'); };
+
+                btn.addEventListener('touchstart', handleStart);
+                btn.addEventListener('touchend', handleEnd);
+                btn.addEventListener('mousedown', handleStart);
+                btn.addEventListener('mouseup', handleEnd);
             };
 
-            bindBtn('btnUp', () => keys.up = true, () => keys.up = false);
-            bindBtn('btnDown', () => keys.down = true, () => keys.down = false);
-            bindBtn('btnLeft', () => keys.left = true, () => keys.left = false);
-            bindBtn('btnRight', () => keys.right = true, () => keys.right = false);
-            bindBtn('btnB', () => triggerAttack(), null);
-            bindBtn('btnA', () => triggerDash(), null);
+            bindBtn('btnB', () => triggerAttack());
+            bindBtn('btnA', () => triggerDash());
 
             window.addEventListener('keydown', (e) => {
                 if (e.repeat) return;
                 switch (e.key) {
-                    case 'ArrowUp': case 'w': case 'W': keys.up = true; break;
-                    case 'ArrowDown': case 's': case 'S': keys.down = true; break;
-                    case 'ArrowLeft': case 'a': case 'A': keys.left = true; break;
-                    case 'ArrowRight': case 'd': case 'D': keys.right = true; break;
+                    case 'ArrowUp': case 'w': case 'W': kbKeys.up = true; break;
+                    case 'ArrowDown': case 's': case 'S': kbKeys.down = true; break;
+                    case 'ArrowLeft': case 'a': case 'A': kbKeys.left = true; break;
+                    case 'ArrowRight': case 'd': case 'D': kbKeys.right = true; break;
                     case 'z': case 'Z': case 'j': case 'J': triggerAttack(); break;
                     case 'x': case 'X': case 'k': case 'K': triggerDash(); break;
                 }
@@ -715,10 +972,10 @@
 
             window.addEventListener('keyup', (e) => {
                 switch (e.key) {
-                    case 'ArrowUp': case 'w': case 'W': keys.up = false; break;
-                    case 'ArrowDown': case 's': case 'S': keys.down = false; break;
-                    case 'ArrowLeft': case 'a': case 'A': keys.left = false; break;
-                    case 'ArrowRight': case 'd': case 'D': keys.right = false; break;
+                    case 'ArrowUp': case 'w': case 'W': kbKeys.up = false; break;
+                    case 'ArrowDown': case 's': case 'S': kbKeys.down = false; break;
+                    case 'ArrowLeft': case 'a': case 'A': kbKeys.left = false; break;
+                    case 'ArrowRight': case 'd': case 'D': kbKeys.right = false; break;
                 }
             });
         }
