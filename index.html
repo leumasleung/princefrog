@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>青蛙王子大戰食物怪 - Grid Arcade</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background-color: #1a1a24;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* 頂部資訊欄 Header */
+        .header {
+            width: 100%;
+            max-width: 480px;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252538;
+            border-bottom: 2px solid #3d3d5c;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #a0a0c0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* 血條 */
+        .hp-bar-outer {
+            width: 110px;
+            height: 14px;
+            background: #441111;
+            border: 2px solid #ff4444;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 2px;
+        }
+
+        .hp-bar-inner {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            transition: width 0.2s ease;
+        }
+
+        /* 衝刺 CD 指示器 */
+        .cd-box {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #00e5ff;
+        }
+
+        .cd-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00e5ff;
+            box-shadow: 0 0 8px #00e5ff;
+        }
+
+        .cd-indicator.charging {
+            background: #555;
+            box-shadow: none;
+        }
+
+        /* 遊戲畫布 Canvas Container */
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+
+        canvas {
+            background-color: #2d5a27;
+            border: 4px solid #4a3000;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* Game Over / Start Overlay */
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 15, 25, 0.92);
+            border: 3px solid #ffd700;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            width: 85%;
+            max-width: 360px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 20;
+        }
+
+        .overlay h1 {
+            font-size: 22px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .overlay p {
+            font-size: 14px;
+            color: #d0d0e0;
+            line-height: 1.5;
+        }
+
+        .btn-start {
+            background: linear-gradient(180deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: transform 0.1s;
+        }
+
+        .btn-start:active {
+            transform: scale(0.95);
+        }
+
+        /* 下方掌機控制器區域 */
+        .controller {
+            width: 100%;
+            max-width: 480px;
+            height: 210px;
+            background: #232332;
+            border-top: 3px solid #3d3d5c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 24px 20px 24px;
+            box-sizing: border-box;
+        }
+
+        /* 十字鍵 D-Pad */
+        .dpad-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            background: #3b3b54;
+            border: 2px solid #5a5a7d;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #aaa;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .dpad-btn:active, .dpad-btn.active {
+            background: #6c5ce7;
+            color: #fff;
+            border-color: #a29bfe;
+            transform: translateY(2px);
+        }
+
+        .dpad-up { top: 0; left: 43px; width: 44px; height: 46px; border-radius: 8px 8px 0 0; }
+        .dpad-down { bottom: 0; left: 43px; width: 44px; height: 46px; border-radius: 0 0 8px 8px; }
+        .dpad-left { top: 43px; left: 0; width: 46px; height: 44px; border-radius: 8px 0 0 8px; }
+        .dpad-right { top: 43px; right: 0; width: 46px; height: 44px; border-radius: 0 8px 8px 0; }
+        .dpad-center { top: 43px; left: 43px; width: 44px; height: 44px; background: #2f2f45; border: none; box-shadow: none; }
+
+        /* A B 按鈕群 */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            transform: rotate(-12deg);
+        }
+
+        .btn-action {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: inset 0 3px 0 rgba(255,255,255,0.3), 0 6px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            touch-action: none;
+            border: 3px solid rgba(0,0,0,0.3);
+        }
+
+        .btn-action:active, .btn-action.active {
+            transform: translateY(3px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .btn-b {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+        }
+
+        .btn-a {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            margin-top: -20px;
+        }
+
+        .btn-action span {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .btn-action .sub-text {
+            font-size: 9px;
+            margin-top: 2px;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部資訊欄 -->
+    <div class="header">
+        <div class="stat-box">
+            <span class="stat-label">SCORE</span>
+            <span class="stat-value" id="scoreDisplay">00000</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">HP</span>
+            <div class="hp-bar-outer">
+                <div class="hp-bar-inner" id="hpBar"></div>
+            </div>
+        </div>
+        <div class="cd-box">
+            <div class="cd-indicator" id="cdIndicator"></div>
+            <span>衝刺 [A]</span>
+        </div>
+    </div>
+
+    <!-- 遊戲畫布與浮層 -->
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="overlay" id="startOverlay">
+            <h1>👑 青蛙王子大戰食物怪 🐸</h1>
+            <p>怪物大軍來襲！<br>使用<b>十字鍵</b>移動，<b>B鍵</b>發動舌鞭攻擊，<b>A鍵</b>向前衝刺閃避！</p>
+            <button class="btn-start" onclick="startGame()">開始遊戲</button>
+        </div>
+
+        <div class="overlay" id="gameOverOverlay" style="display: none;">
+            <h1 style="color: #ff4444;">GAME OVER</h1>
+            <p>最終得分：<b id="finalScore" style="color:#ffd700; font-size: 20px;">0</b></p>
+            <p>青蛙王子被食物怪包圍了！</p>
+            <button class="btn-start" onclick="startGame()">再次挑戰</button>
+        </div>
+    </div>
+
+    <!-- 虛擬掌機控制器 -->
+    <div class="controller">
+        <!-- 十字鍵 -->
+        <div class="dpad-container">
+            <div class="dpad-btn dpad-up" id="btnUp">▲</div>
+            <div class="dpad-btn dpad-left" id="btnLeft">◀</div>
+            <div class="dpad-btn dpad-center"></div>
+            <div class="dpad-btn dpad-right" id="btnRight">▶</div>
+            <div class="dpad-btn dpad-down" id="btnDown">▼</div>
+        </div>
+
+        <!-- B / A 鍵 -->
+        <div class="action-buttons">
+            <div class="btn-action btn-b" id="btnB">
+                <span>B</span>
+                <span class="sub-text">攻擊</span>
+            </div>
+            <div class="btn-action btn-a" id="btnA">
+                <span>A</span>
+                <span class="sub-text">衝刺</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 固定方格大小設計
+        const GRID_COLS = 11;
+        const GRID_ROWS = 11;
+        const TILE_SIZE = 36; // 每個方格 36x36 像素
+        canvas.width = GRID_COLS * TILE_SIZE;  // 396px
+        canvas.height = GRID_ROWS * TILE_SIZE; // 396px
+
+        // 遊戲狀態
+        let gameRunning = false;
+        let score = 0;
+        let playerHp = 100;
+        let maxHp = 100;
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let spawnInterval = 1200; // 毫秒
+
+        // 衝刺機制
+        let dashCooldown = 0;
+        const DASH_COOLDOWN_MAX = 1500; // 1.5 秒
+        let isDashing = false;
+        let dashTimer = 0;
+        const DASH_DURATION = 180;
+
+        // 攻擊機制
+        let isAttacking = false;
+        let attackTimer = 0;
+        const ATTACK_DURATION = 200;
+        let attackDir = { x: 0, y: -1 };
+
+        // 方向控制狀態
+        const keys = { up: false, down: false, left: false, right: false };
+
+        // 青蛙王子物件
+        const player = {
+            gridX: 5, gridY: 5,
+            x: 5 * TILE_SIZE, y: 5 * TILE_SIZE,
+            targetX: 5 * TILE_SIZE, targetY: 5 * TILE_SIZE,
+            dirX: 0, dirY: -1,
+            moveSpeed: 0.25
+        };
+
+        // 怪物列表與粒子
+        let monsters = [];
+        let particles = [];
+
+        // 怪物類型定義
+        const MONSTER_TYPES = [
+            { type: 'egg', emoji: '🥚', hp: 1, speed: 0.04, score: 10, color: '#f5f6fa' },
+            { type: 'milk', emoji: '🥛', hp: 1, speed: 0.07, score: 15, color: '#dcdde1' },
+            { type: 'shroom', emoji: '🍄', hp: 2, speed: 0.035, score: 25, color: '#e74c3c' },
+            { type: 'cheese', emoji: '🧀', hp: 1, speed: 0.05, score: 20, color: '#f1c40f' }
+        ];
+
+        // 地圖背景方格細節
+        const mapTiles = [];
+        for (let r = 0; r < GRID_ROWS; r++) {
+            mapTiles[r] = [];
+            for (let c = 0; c < GRID_COLS; c++) {
+                const isBorder = (r === 0 || r === GRID_ROWS - 1 || c === 0 || c === GRID_COLS - 1);
+                const randomVal = Math.random();
+                let detail = null;
+                if (!isBorder && randomVal < 0.15) detail = 'flower';
+                else if (!isBorder && randomVal < 0.25) detail = 'pebble';
+
+                mapTiles[r][c] = {
+                    isBorder: isBorder,
+                    shade: (r + c) % 2 === 0 ? '#34682c' : '#2d5a27',
+                    detail: detail
+                };
+            }
+        }
+
+        // 開始遊戲
+        function startGame() {
+            score = 0;
+            playerHp = maxHp;
+            monsters = [];
+            particles = [];
+            player.gridX = 5; player.gridY = 5;
+            player.x = 5 * TILE_SIZE; player.y = 5 * TILE_SIZE;
+            player.targetX = player.x; player.targetY = player.y;
+            player.dirX = 0; player.dirY = -1;
+            dashCooldown = 0;
+            spawnInterval = 1200;
+
+            document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('gameOverOverlay').style.display = 'none';
+            updateUI();
+
+            gameRunning = true;
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt) {
+            if (dashCooldown > 0) {
+                dashCooldown -= dt;
+                if (dashCooldown < 0) dashCooldown = 0;
+            }
+            if (isDashing) {
+                dashTimer -= dt;
+                if (dashTimer <= 0) isDashing = false;
+            }
+            if (isAttacking) {
+                attackTimer -= dt;
+                if (attackTimer <= 0) isAttacking = false;
+            }
+
+            // 網格移動邏輯
+            if (!isDashing && player.x === player.targetX && player.y === player.targetY) {
+                let dx = 0, dy = 0;
+                if (keys.up) dy = -1;
+                else if (keys.down) dy = 1;
+                else if (keys.left) dx = -1;
+                else if (keys.right) dx = 1;
+
+                if (dx !== 0 || dy !== 0) {
+                    player.dirX = dx; player.dirY = dy;
+                    const nextGridX = player.gridX + dx;
+                    const nextGridY = player.gridY + dy;
+
+                    if (nextGridX >= 0 && nextGridX < GRID_COLS && nextGridY >= 0 && nextGridY < GRID_ROWS) {
+                        player.gridX = nextGridX;
+                        player.gridY = nextGridY;
+                        player.targetX = player.gridX * TILE_SIZE;
+                        player.targetY = player.gridY * TILE_SIZE;
+                    }
+                }
+            }
+
+            const moveSpeed = isDashing ? player.moveSpeed * 3 : player.moveSpeed;
+            player.x += (player.targetX - player.x) * moveSpeed * (dt / 16);
+            player.y += (player.targetY - player.y) * moveSpeed * (dt / 16);
+
+            if (Math.abs(player.x - player.targetX) < 1) player.x = player.targetX;
+            if (Math.abs(player.y - player.targetY) < 1) player.y = player.targetY;
+
+            // 生成怪物
+            spawnTimer += dt;
+            const currentInterval = Math.max(400, spawnInterval - Math.floor(score / 50) * 80);
+            if (spawnTimer >= currentInterval) {
+                spawnTimer = 0;
+                spawnMonster();
+            }
+
+            // 怪物追逐與碰撞
+            monsters.forEach((m, index) => {
+                const targetPixelX = player.gridX * TILE_SIZE;
+                const targetPixelY = player.gridY * TILE_SIZE;
+
+                const angle = Math.atan2(targetPixelY - m.y, targetPixelX - m.x);
+                m.x += Math.cos(angle) * m.speed * TILE_SIZE * (dt / 16);
+                m.y += Math.sin(angle) * m.speed * TILE_SIZE * (dt / 16);
+
+                const distSq = (m.x - player.x) ** 2 + (m.y - player.y) ** 2;
+                if (distSq < (TILE_SIZE * 0.7) ** 2) {
+                    if (!isDashing) {
+                        playerHp -= 15;
+                        createParticles(player.x + TILE_SIZE/2, player.y + TILE_SIZE/2, '#ff4444', 8);
+                        monsters.splice(index, 1);
+                        if (playerHp <= 0) {
+                            playerHp = 0;
+                            gameOver();
+                        }
+                        updateUI();
+                    }
+                }
+            });
+
+            // 粒子更新
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.04;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            updateUI();
+        }
+
+        // A 鍵：衝刺
+        function triggerDash() {
+            if (dashCooldown > 0 || !gameRunning || isDashing) return;
+
+            isDashing = true;
+            dashTimer = DASH_DURATION;
+            dashCooldown = DASH_COOLDOWN_MAX;
+
+            let targetGX = Math.max(0, Math.min(GRID_COLS - 1, player.gridX + player.dirX * 2));
+            let targetGY = Math.max(0, Math.min(GRID_ROWS - 1, player.gridY + player.dirY * 2));
+
+            player.gridX = targetGX; player.gridY = targetGY;
+            player.targetX = player.gridX * TILE_SIZE;
+            player.targetY = player.gridY * TILE_SIZE;
+
+            createParticles(player.x + TILE_SIZE/2, player.y + TILE_SIZE/2, '#00e5ff', 12);
+        }
+
+        // B 鍵：攻擊
+        function triggerAttack() {
+            if (!gameRunning || isAttacking) return;
+
+            isAttacking = true;
+            attackTimer = ATTACK_DURATION;
+            attackDir = { x: player.dirX, y: player.dirY };
+
+            const attackBox = {
+                x: player.x + attackDir.x * TILE_SIZE - TILE_SIZE / 2,
+                y: player.y + attackDir.y * TILE_SIZE - TILE_SIZE / 2,
+                width: TILE_SIZE * 2, height: TILE_SIZE * 2
+            };
+
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                const m = monsters[i];
+                if (m.x >= attackBox.x && m.x <= attackBox.x + attackBox.width &&
+                    m.y >= attackBox.y && m.y <= attackBox.y + attackBox.height) {
+                    m.hp -= 1;
+                    createParticles(m.x + TILE_SIZE/2, m.y + TILE_SIZE/2, m.color, 10);
+                    if (m.hp <= 0) {
+                        score += m.score;
+                        monsters.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function spawnMonster() {
+            let gx, gy;
+            const side = Math.floor(Math.random() * 4);
+            if (side === 0) { gx = Math.floor(Math.random() * GRID_COLS); gy = 0; }
+            else if (side === 1) { gx = Math.floor(Math.random() * GRID_COLS); gy = GRID_ROWS - 1; }
+            else if (side === 2) { gx = 0; gy = Math.floor(Math.random() * GRID_ROWS); }
+            else { gx = GRID_COLS - 1; gy = Math.floor(Math.random() * GRID_ROWS); }
+
+            let typeIdx = 0;
+            const rand = Math.random();
+            if (score > 100 && rand > 0.6) typeIdx = 3;
+            else if (score > 60 && rand > 0.4) typeIdx = 2;
+            else if (score > 30 && rand > 0.3) typeIdx = 1;
+
+            const template = MONSTER_TYPES[typeIdx];
+            monsters.push({
+                ...template,
+                x: gx * TILE_SIZE, y: gy * TILE_SIZE,
+                gridX: gx, gridY: gy
+            });
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+                    color: color, alpha: 1
+                });
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. 網格背景
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    const tile = mapTiles[r][c];
+                    ctx.fillStyle = tile.shade;
+                    ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+                    ctx.strokeRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                    if (tile.detail === 'flower') {
+                        ctx.fillStyle = '#ffda79';
+                        ctx.beginPath();
+                        ctx.arc(c * TILE_SIZE + 18, r * TILE_SIZE + 18, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (tile.detail === 'pebble') {
+                        ctx.fillStyle = '#1e3799';
+                        ctx.fillRect(c * TILE_SIZE + 14, r * TILE_SIZE + 22, 4, 3);
+                    }
+                }
+            }
+
+            // 2. 攻擊特效
+            if (isAttacking) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 107, 129, 0.7)';
+                const atkX = player.x + attackDir.x * TILE_SIZE;
+                const atkY = player.y + attackDir.y * TILE_SIZE;
+                ctx.beginPath();
+                ctx.arc(atkX + TILE_SIZE/2, atkY + TILE_SIZE/2, TILE_SIZE * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 3. 怪物
+            monsters.forEach(m => {
+                ctx.font = '24px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(m.emoji, m.x + TILE_SIZE / 2, m.y + TILE_SIZE / 2 + 2);
+            });
+
+            // 4. 青蛙王子 (👑🐸)
+            ctx.save();
+            if (isDashing) ctx.globalAlpha = 0.6;
+            ctx.font = '26px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐸', player.x + TILE_SIZE / 2, player.y + TILE_SIZE / 2 + 2);
+            ctx.font = '14px serif';
+            ctx.fillText('👑', player.x + TILE_SIZE / 2, player.y + 6);
+            ctx.restore();
+
+            // 5. 粒子
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 4, 4);
+                ctx.restore();
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('scoreDisplay').innerText = score.toString().padStart(5, '0');
+            const hpPercent = Math.max(0, (playerHp / maxHp) * 100);
+            document.getElementById('hpBar').style.width = hpPercent + '%';
+            document.getElementById('cdIndicator').classList.toggle('charging', dashCooldown > 0);
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('gameOverOverlay').style.display = 'flex';
+        }
+
+        function setupControls() {
+            const bindBtn = (id, start, end) => {
+                const btn = document.getElementById(id);
+                const hStart = (e) => { e.preventDefault(); btn.classList.add('active'); start(); };
+                const hEnd = (e) => { e.preventDefault(); btn.classList.remove('active'); if(end) end(); };
+                btn.addEventListener('touchstart', hStart);
+                btn.addEventListener('touchend', hEnd);
+                btn.addEventListener('mousedown', hStart);
+                btn.addEventListener('mouseup', hEnd);
+            };
+
+            bindBtn('btnUp', () => keys.up = true, () => keys.up = false);
+            bindBtn('btnDown', () => keys.down = true, () => keys.down = false);
+            bindBtn('btnLeft', () => keys.left = true, () => keys.left = false);
+            bindBtn('btnRight', () => keys.right = true, () => keys.right = false);
+            bindBtn('btnB', () => triggerAttack(), null);
+            bindBtn('btnA', () => triggerDash(), null);
+
+            window.addEventListener('keydown', (e) => {
+                if (e.repeat) return;
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': keys.up = true; break;
+                    case 'ArrowDown': case 's': case 'S': keys.down = true; break;
+                    case 'ArrowLeft': case 'a': case 'A': keys.left = true; break;
+                    case 'ArrowRight': case 'd': case 'D': keys.right = true; break;
+                    case 'z': case 'Z': case 'j': case 'J': triggerAttack(); break;
+                    case 'x': case 'X': case 'k': case 'K': triggerDash(); break;
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': keys.up = false; break;
+                    case 'ArrowDown': case 's': case 'S': keys.down = false; break;
+                    case 'ArrowLeft': case 'a': case 'A': keys.left = false; break;
+                    case 'ArrowRight': case 'd': case 'D': keys.right = false; break;
+                }
+            });
+        }
+
+        setupControls();
+        render();
+    </script>
+</body>
+</html>
