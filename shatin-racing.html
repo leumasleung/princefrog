@@ -147,7 +147,7 @@
     #pause-btn {
       width: 72px;
       height: 38px;
-      background: linear-gradient(180deg, #373ab) 0%, #22242a 100%);
+      background: linear-gradient(180deg, #373ab9 0%, #22242a 100%);
       background-color: #2a2d34;
       border: 1.5px solid #4f5461;
       border-radius: 19px;
@@ -617,7 +617,7 @@
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.fillRect(-car.width / 2 + 2, -car.height / 2 + 3, car.width, car.height);
 
-    // 車身 (Google Navigation Yellow / Sport Red)
+    // 車身 (Google Navigation Red Sports Car)
     ctx.fillStyle = '#ea4335'; 
     ctx.beginPath();
     ctx.roundRect(-car.width / 2, -car.height / 2, car.width, car.height, 4);
@@ -687,8 +687,7 @@
             lapDisplay.innerText = `${currentLap} / ${maxLaps}`;
             checkpoints.forEach((c, i) => { if(i!==0) c.passed = false; });
           } else {
-            alert(`🎉 恭喜完成沙田第一城-石門路線！
-⏱️ 總成績：${m}:${s}.${ms}`);
+            alert(`🎉 恭喜完成沙田第一城-石門路線！\n⏱️ 總成績：${m}:${s}.${ms}`);
             resetGame();
           }
         } else if (idx !== 0) {
