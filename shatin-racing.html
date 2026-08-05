@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>沙田第一城 & 石門 2D 賽車遊戲</title>
+  <title>沙田第一城 - 石門 Google Maps 路線 2D 賽車遊戲</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,72 +15,85 @@
     }
 
     body {
-      background-color: #121212;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      color: #fff;
+      color: #202124;
     }
 
-    /* 遊戲畫面上方 (約占 60% 高度) */
+    /* 遊戲畫面上方 (約占 62% 高度) */
     #game-region {
       position: relative;
       flex: 1;
       width: 100%;
-      background-color: #2b2b2b;
+      background-color: #f1f3f4; /* Google Map Light Gray Ground */
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
 
     canvas {
       display: block;
       width: 100%;
       height: 100%;
-      background: #388e3c;
+      background: #f1f3f4;
     }
 
-    /* 抬頭顯示器 (HUD) */
+    /* Google Maps 風格抬頭顯示器 (HUD) */
     #hud {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       display: flex;
       justify-content: space-between;
+      gap: 8px;
       pointer-events: none;
       z-index: 10;
     }
 
     .hud-card {
-      background: rgba(0, 0, 0, 0.65);
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 14px;
-      font-weight: bold;
-      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 14px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(60,64,67,0.15), 0 1px 2px rgba(60,64,67,0.3);
+      font-size: 13px;
+      font-weight: 700;
+      color: #3c4043;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .hud-card span {
-      color: #00e676;
+      color: #1a73e8; /* Google Blue */
+      font-size: 15px;
     }
 
-    /* 手柄控制區下方 (PlayStation 風格) */
+    .hud-card .speed-val {
+      color: #ea4335; /* Google Red */
+      font-size: 16px;
+    }
+
+    /* PlayStation 控制器風格區塊 (下方) */
     #controller-region {
-      height: 240px;
-      background: linear-gradient(180deg, #1f2024 0%, #121315 100%);
-      border-top: 4px solid #2a2c32;
+      height: 250px;
+      background: linear-gradient(180deg, #202124 0%, #111214 100%);
+      border-top: 3px solid #3c4043;
       display: grid;
-      grid-template-columns: 1fr 100px 1fr;
+      grid-template-columns: 1fr 90px 1fr;
       align-items: center;
       padding: 10px 15px;
-      box-shadow: inset 0 2px 5px rgba(255,255,255,0.05);
+      box-shadow: inset 0 2px 8px rgba(255,255,255,0.05);
+      z-index: 15;
     }
 
-    /* 左側 360 搖桿區 */
+    /* 左側：PlayStation 360 搖桿區 */
     .ctrl-left {
       display: flex;
       justify-content: center;
@@ -88,27 +101,38 @@
     }
 
     #joystick-base {
-      width: 130px;
-      height: 130px;
-      background: radial-gradient(circle, #2a2d32 0%, #17181c 100%);
+      width: 135px;
+      height: 135px;
+      background: radial-gradient(circle, #2b2d32 0%, #18191c 100%);
       border-radius: 50%;
-      border: 3px solid #3a3f47;
+      border: 3px solid #3f434a;
       position: relative;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1);
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
     #joystick-stick {
-      width: 55px;
-      height: 55px;
-      background: radial-gradient(circle, #4a4f58 0%, #25282e 100%);
+      width: 58px;
+      height: 58px;
+      background: radial-gradient(circle, #525863 0%, #2b2e35 100%);
       border-radius: 50%;
-      border: 2px solid #5a606d;
+      border: 2.5px solid #6b7280;
       position: absolute;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-      transition: transform 0.05s ease-out;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.7);
+      transition: transform 0.04s ease-out;
+    }
+
+    #joystick-stick::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
     /* 中間 PAUSE 鍵區 */
@@ -117,28 +141,31 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      gap: 8px;
     }
 
     #pause-btn {
-      width: 75px;
+      width: 72px;
       height: 38px;
-      background: linear-gradient(180deg, #3a3d45 0%, #22242b 100%);
-      border: 1.5px solid #555a66;
+      background: linear-gradient(180deg, #373ab) 0%, #22242a 100%);
+      background-color: #2a2d34;
+      border: 1.5px solid #4f5461;
       border-radius: 19px;
-      color: #cfd8dc;
-      font-weight: bold;
-      font-size: 12px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      color: #e8eaed;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
     }
 
     #pause-btn:active {
-      transform: scale(0.95);
-      background: #191a1e;
+      transform: scale(0.94);
+      background-color: #17181c;
     }
 
     /* 右側 油門 & 剎車 按鈕區 */
@@ -148,19 +175,19 @@
       justify-content: space-around;
       align-items: center;
       height: 100%;
-      gap: 12px;
+      gap: 10px;
     }
 
     .btn-action {
-      width: 110px;
-      height: 54px;
-      border-radius: 27px;
-      border: 2px solid rgba(255,255,255,0.2);
-      font-size: 16px;
+      width: 115px;
+      height: 52px;
+      border-radius: 26px;
+      border: 2px solid rgba(255,255,255,0.25);
+      font-size: 15px;
       font-weight: 900;
-      color: #fff;
+      color: #ffffff;
       letter-spacing: 1px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.25);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -168,73 +195,78 @@
     }
 
     .btn-action:active, .btn-action.active {
-      transform: scale(0.95);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      transform: scale(0.94);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.7);
     }
 
     #gas-btn {
-      background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
-      text-shadow: 0 1px 2px #000;
+      background: linear-gradient(180deg, #34a853 0%, #1e7e34 100%); /* Google Green */
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
 
     #brake-btn {
-      background: linear-gradient(180deg, #c62828 0%, #8e0000 100%);
-      text-shadow: 0 1px 2px #000;
+      background: linear-gradient(180deg, #ea4335 0%, #b31412 100%); /* Google Red */
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
 
-    /* 暫停遮罩 */
+    /* 暫停彈窗 */
     #pause-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(32, 33, 36, 0.85);
+      backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      z-index: 20;
+      z-index: 30;
     }
     #pause-overlay h1 {
-      font-size: 32px;
-      color: #fff;
-      margin-bottom: 10px;
+      font-size: 28px;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    #pause-overlay p {
+      font-size: 14px;
+      color: #bdc1c6;
     }
   </style>
 </head>
 <body>
 
-  <!-- 上方：遊戲 Canvas 畫面與 HUD -->
+  <!-- 上方：遊戲 Canvas 畫面與 Google Map HUD -->
   <div id="game-region">
     <div id="hud">
-      <div class="hud-card">圈數: <span id="lap-display">1 / 3</span></div>
-      <div class="hud-card">時間: <span id="time-display">00:00.00</span></div>
-      <div class="hud-card">時速: <span id="speed-display">0</span> km/h</div>
+      <div class="hud-card">🏁 圈數: <span id="lap-display">1 / 3</span></div>
+      <div class="hud-card">⏱️ 時間: <span id="time-display">00:00.00</span></div>
+      <div class="hud-card">⚡ 車速: <span id="speed-display" class="speed-val">0</span> km/h</div>
     </div>
     
     <div id="pause-overlay">
-      <h1>已暫停 PAUSED</h1>
-      <p style="color:#aaa;">按下中間 PAUSE 鍵繼續遊戲</p>
+      <h1>⏸️ 遊戲暫停 PAUSED</h1>
+      <p>點擊下方 PAUSE 按鈕繼續駕駛</p>
     </div>
 
     <canvas id="gameCanvas"></canvas>
   </div>
 
-  <!-- 下方：PlayStation 控制介面 -->
+  <!-- 下方：PlayStation 風格控制面板 -->
   <div id="controller-region">
-    <!-- 左：360度方向搖桿 -->
+    <!-- 左：360度 Analog 方向搖桿 -->
     <div class="ctrl-left">
       <div id="joystick-base">
         <div id="joystick-stick"></div>
       </div>
     </div>
 
-    <!-- 中：暫停鍵 -->
+    <!-- 中：PAUSE 按鈕 -->
     <div class="ctrl-center">
       <button id="pause-btn">
         <span>❚❚</span> PAUSE
       </button>
     </div>
 
-    <!-- 右：油門與煞車 -->
+    <!-- 右：油門 & 剎車 按鈕 -->
     <div class="ctrl-right">
       <div id="gas-btn" class="btn-action">油門 GAS</div>
       <div id="brake-btn" class="btn-action">剎車 BRAKE</div>
@@ -251,9 +283,9 @@
   const speedDisplay = document.getElementById('speed-display');
   const pauseOverlay = document.getElementById('pause-overlay');
 
-  // 控制狀態
+  // 遊戲狀態與控制變數
   let controls = {
-    steeringVector: { x: 0, y: 0 }, // 360 度轉向向量
+    steeringVector: { x: 0, y: 0 },
     gas: false,
     brake: false
   };
@@ -264,22 +296,46 @@
   let currentLap = 1;
   const maxLaps = 3;
 
-  // 車輛狀態
+  // 路線定義 (完全對照圖片中 Google Map 藍色導航線 Path Point)
+  // 起點：晴碧花園1座 -> 銀城街 -> 得基街 -> 小瀝源路 -> 大涌橋路/安麗街 -> 安平街 -> 安心街 -> 石門站/安睦街 -> 繞回安麗街/晴碧花園
+  const trackPoints = [
+    { x: 310, y: 780 }, // 晴碧花園1座 (Start Point 📍)
+    { x: 260, y: 780 }, // 銀城街轉向點
+    { x: 440, y: 550 }, // 得基街 / 沙田第一城旁
+    { x: 300, y: 440 }, // 小瀝源路轉折點 (城門河第二海濱花園旁)
+    { x: 470, y: 290 }, // 安麗街 / 會所一號 水中天旁
+    { x: 620, y: 150 }, // 安平街 / 安心街 頂端 (石門迷你倉)
+    { x: 720, y: 260 }, // W LUXE / Craps Cafe 區域
+    { x: 610, y: 380 }, // 陳根記 / 榮福堂中醫
+    { x: 670, y: 450 }, // 石門站 (Shek Mun MTR Station)
+    { x: 570, y: 530 }, // 安睦街 / 城門河邊
+    { x: 440, y: 550 }  // 繞回得基街 (Loop back)
+  ];
+
+  // 檢查點 Checkpoints
+  const checkpoints = [
+    { x: 310, y: 780, radius: 50, passed: false }, // 起點 / 終點 (晴碧花園1座)
+    { x: 300, y: 440, radius: 60, passed: false }, // CP1: 小瀝源路
+    { x: 620, y: 150, radius: 60, passed: false }, // CP2: 安平街/安心街
+    { x: 670, y: 450, radius: 60, passed: false }  // CP3: 石門站
+  ];
+
+  // 車輛動態初始狀態
   const car = {
-    x: 480,
-    y: 380,
-    angle: -Math.PI / 2, // 面向上方
+    x: 310,
+    y: 780,
+    angle: -Math.PI * 0.75, // 指向銀城街方向
     speed: 0,
-    maxSpeed: 7.5,
-    accel: 0.12,
-    brakeDecel: 0.2,
-    friction: 0.04,
-    steerSpeed: 0.055,
-    width: 18,
-    height: 34
+    maxSpeed: 7.2,
+    accel: 0.14,
+    brakeDecel: 0.22,
+    friction: 0.045,
+    steerSpeed: 0.06,
+    width: 16,
+    height: 30
   };
 
-  // Canvas 尺寸自動調適
+  // Canvas 視窗 RWD 縮放
   function resizeCanvas() {
     const region = document.getElementById('game-region');
     canvas.width = region.clientWidth;
@@ -288,150 +344,307 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // 地圖路徑點 (以沙田第一城、石門真實幹道規劃之封閉賽道)
-  // 順序：第一城站 -> 晴碧花園 -> 沙田第一城 -> 大涌橋路 -> 石門 -> 第一城站
-  const trackPath = [
-    { x: 480, y: 380 }, // Start Line (第一城站旁插桅杆街)
-    { x: 480, y: 460 },
-    { x: 320, y: 460 }, // 晴碧花園角
-    { x: 180, y: 420 },
-    { x: 180, y: 220 }, // 沙田第一城銀城街
-    { x: 260, y: 120 },
-    { x: 550, y: 120 }, // 大涌橋路 (靠近城門河)
-    { x: 680, y: 180 }, // 石門工業區
-    { x: 680, y: 320 }, // 石門站
-    { x: 580, y: 380 }  // 返回第一城站
-  ];
-
-  // 檢查點 Checkpoints
-  const checkpoints = [
-    { x: 480, y: 380, radius: 60, passed: false }, // 起點 / 終點
-    { x: 180, y: 320, radius: 70, passed: false }, // CP1: 第一城 / 晴碧花園
-    { x: 680, y: 220, radius: 70, passed: false }  // CP2: 石門
-  ];
-
-  // 繪製地圖與真實地標
-  function drawMap() {
+  // 繪製 Google Maps 風格的底圖與道路
+  function drawGoogleMapBackground() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. 城門河 (Shing Mun River) - 位於右上角
-    ctx.fillStyle = '#1e88e5';
+    // 1. 底色 (Google Map Light Land #f1f3f4)
+    ctx.fillStyle = '#f1f3f4';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. 城門河 (Shing Mun River) - 水藍色 #aadaff
+    ctx.fillStyle = '#aadaff';
     ctx.beginPath();
-    ctx.moveTo(480, 0);
-    ctx.lineTo(canvas.width, 0);
-    ctx.lineTo(canvas.width, 240);
-    ctx.lineTo(620, 0);
+    ctx.moveTo(0, 520);
+    ctx.lineTo(0, 200);
+    ctx.lineTo(400, 0);
+    ctx.lineTo(750, 0);
+    ctx.lineTo(0, 520);
     ctx.fill();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('【城門河 Shing Mun River】', canvas.width - 200, 40);
+    // 另一個城門河分支 (右下)
+    ctx.beginPath();
+    ctx.moveTo(500, 800);
+    ctx.lineTo(800, 550);
+    ctx.lineTo(800, 800);
+    ctx.fill();
 
-    // 2. 賽道柏油路 (Road Asphalt)
-    ctx.strokeStyle = '#424242';
-    ctx.lineWidth = 50;
+    // 河流文字標籤
+    ctx.fillStyle = '#1a73e8';
+    ctx.font = 'bold 15px -apple-system, sans-serif';
+    ctx.fillText('Shing Mun River 城門河', 120, 260);
+
+    // 3. 公園/綠地 (Google Map Park Green #d0e8ce)
+    ctx.fillStyle = '#d0e8ce';
+    
+    // 城門河第二海濱花園
+    ctx.beginPath();
+    ctx.fillRect(230, 360, 110, 70);
+    ctx.fill();
+
+    // 翠湖花園 / 綠化區
+    ctx.beginPath();
+    ctx.arc(480, 50, 45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 晴碧花園公園區
+    ctx.beginPath();
+    ctx.fillRect(200, 730, 100, 60);
+    ctx.fill();
+
+    // 4. 普通街道 (白色 #ffffff 帶灰色邊框 #dadce0)
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+
+    // 灰色道路底邊
+    ctx.shadowColor = '#dadce0';
+    ctx.shadowBlur = 2;
+
+    // 畫一般道路網 (插桅杆街, 寶城街, 安睦街, 安耀街, 安心街)
+    const secondaryRoads = [
+      [{x: 100, y: 700}, {x: 500, y: 700}], // 插桅杆街
+      [{x: 350, y: 600}, {x: 550, y: 600}], // 寶城街
+      [{x: 500, y: 300}, {x: 750, y: 500}], // 安睦街
+      [{x: 550, y: 220}, {x: 780, y: 400}]  // 安耀街
+    ];
+
+    secondaryRoads.forEach(road => {
+      ctx.beginPath();
+      ctx.moveTo(road[0].x, road[0].y);
+      ctx.lineTo(road[1].x, road[1].y);
+      ctx.stroke();
+    });
+
+    ctx.shadowBlur = 0; // 重置陰影
+
+    // 5. 主要幹道 (Google Map 鵝黃色 #fef0b3 / 橘黃邊線 #f9ab00)
+    ctx.strokeStyle = '#fef0b3';
+    ctx.lineWidth = 26;
+    
+    // 大涌橋路 & 沙田路
     ctx.beginPath();
-    trackPath.forEach((pt, idx) => {
+    ctx.moveTo(0, 650);
+    ctx.lineTo(600, 150);
+    ctx.stroke();
+
+    // 6. 沙田第一城 & 石門 建築物區塊 (#e8eaed)
+    ctx.fillStyle = '#e8eaed';
+    ctx.strokeStyle = '#dadce0';
+    ctx.lineWidth = 1;
+
+    // 沙田第一城 Building Blocks
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        ctx.fillRect(320 + c * 35, 580 + r * 35, 25, 25);
+        ctx.strokeRect(320 + c * 35, 580 + r * 35, 25, 25);
+      }
+    }
+
+    // 石門工商業區 Building Blocks (W LUXE, 偉達)
+    ctx.fillRect(630, 180, 50, 40);
+    ctx.fillRect(700, 220, 50, 45);
+    ctx.fillRect(590, 290, 55, 45);
+
+    // 7. 🎯【賽道：Google Navigation Blue Route 藍色導航線】
+    // 導航藍外框 (#185abc)
+    ctx.strokeStyle = '#185abc';
+    ctx.lineWidth = 36;
+    ctx.beginPath();
+    trackPoints.forEach((pt, idx) => {
       if (idx === 0) ctx.moveTo(pt.x, pt.y);
       else ctx.lineTo(pt.x, pt.y);
     });
     ctx.closePath();
     ctx.stroke();
 
-    // 賽道白邊線
+    // 導航主藍線 (#1a73e8 - Google Maps Signature Blue)
+    ctx.strokeStyle = '#1a73e8';
+    ctx.lineWidth = 28;
+    ctx.stroke();
+
+    // 導航路線內層路面感 (#4285f4)
+    ctx.strokeStyle = '#4285f4';
+    ctx.lineWidth = 20;
+    ctx.stroke();
+
+    // 虛線箭頭導航點 (Google Maps GPS Dots)
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 52;
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 12]);
     ctx.stroke();
-    ctx.strokeStyle = '#555555';
-    ctx.lineWidth = 46;
-    ctx.stroke();
+    ctx.setLineDash([]); // 恢復實線
 
-    // 3. 地標建築與區域繪製
-    // A. 沙田第一城 (City One Sha Tin)
-    ctx.fillStyle = '#d1c4e9';
-    ctx.fillRect(200, 160, 100, 120);
-    ctx.strokeStyle = '#7e57c2';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(200, 160, 100, 120);
-    ctx.fillStyle = '#4a148c';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText('沙田第一城', 215, 215);
-    ctx.fillText('City One', 225, 230);
+    // 8. Google Maps 地標 POI 標籤與圖示 (完全對照用戶截圖)
+    drawGooglePOIs();
+  }
 
-    // B. 晴碧花園 (Sunshine Grove)
-    ctx.fillStyle = '#c8e6c9';
-    ctx.fillRect(240, 320, 90, 80);
-    ctx.strokeStyle = '#388e3c';
-    ctx.strokeRect(240, 320, 90, 80);
-    ctx.fillStyle = '#1b5e20';
-    ctx.fillText('晴碧花園', 255, 360);
+  // 繪製 Google Map 地標 Pins & 標籤
+  function drawGooglePOIs() {
+    // 📍 起點 Marker (晴碧花園1座)
+    drawPin(310, 780, '#ea4335', '晴碧花園1座');
 
-    // C. 第一城站 (City One MTR Station)
-    ctx.fillStyle = '#ffe0b2';
-    ctx.fillRect(430, 400, 120, 45);
-    ctx.strokeStyle = '#f57c00';
-    ctx.strokeRect(430, 400, 120, 45);
-    ctx.fillStyle = '#e65100';
-    ctx.fillText('港鐵 第一城站', 445, 426);
+    // 📍 目的地 Marker (石門工商業區)
+    drawPin(620, 150, '#ea4335', '香港儲物室-沙田迷你倉');
 
-    // D. 石門商業區 & 石門站 (Shek Mun)
-    ctx.fillStyle = '#cfd8dc';
-    ctx.fillRect(610, 200, 110, 100);
-    ctx.strokeStyle = '#455a64';
-    ctx.strokeRect(610, 200, 110, 100);
-    ctx.fillStyle = '#263238';
-    ctx.fillText('石門工業區', 630, 245);
-    ctx.fillText('& 石門站', 640, 265);
+    // MTR 港鐵站標籤
+    drawMTRBadge(670, 450, '石門站');
+    drawMTRBadge(200, 700, '第一城站');
 
-    // 4. 起點/終點斑馬線 (Start/Finish Line)
+    // 餐廳 / POI 標籤
+    drawPOIBadge(630, 310, '🍣 Craps Cafe', '#ff9800');
+    drawPOIBadge(610, 380, '🍱 陳根記', '#ff9800');
+    drawPOIBadge(480, 270, '💒 會所一號 水中天', '#9c27b0');
+    drawPOIBadge(360, 620, '🏢 沙田第一城', '#5f6368');
+    drawPOIBadge(220, 400, '🌳 城門河第二海濱花園', '#1e8e3e');
+
+    // 道路名稱標籤 (Google Font Style)
+    drawRoadLabel('小瀝源路', 350, 470, -0.6);
+    drawRoadLabel('得基街', 380, 530, -0.7);
+    drawRoadLabel('安麗街', 510, 240, -0.7);
+    drawRoadLabel('大涌橋路', 450, 180, -0.7);
+
+    // 🚗 Google Maps 路線時間提示 Callout 框 (15分鐘 2.8公里)
     ctx.save();
-    ctx.translate(480, 380);
+    ctx.translate(390, 460);
     ctx.fillStyle = '#ffffff';
-    for (let i = -20; i < 20; i += 10) {
-      ctx.fillRect(i, -2, 5, 10);
-    }
+    ctx.shadowColor = 'rgba(60,64,67,0.3)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.roundRect(-5, -18, 115, 34, 6);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#202124';
+    ctx.font = 'bold 12px -apple-system, sans-serif';
+    ctx.fillText('🚗 15 分鐘', 8, 0);
+    ctx.fillStyle = '#70757a';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.fillText('2.8 公里', 8, 12);
     ctx.restore();
   }
 
-  // 繪製賽車
+  // Google 📍 Pin 繪製輔助函式
+  function drawPin(x, y, color, label) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Pin 陰影
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pin 主體
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, -18, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-8, -14);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(8, -14);
+    ctx.fill();
+
+    // Pin 中心白圈
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, -18, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 文字標籤
+    ctx.fillStyle = '#202124';
+    ctx.font = 'bold 12px -apple-system, sans-serif';
+    ctx.fillText(label, 14, -12);
+    ctx.restore();
+  }
+
+  // 繪製 MTR 圖示 Badge
+  function drawMTRBadge(x, y, name) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#d93025'; // MTR Red
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillText('Ж', -4, 3);
+
+    ctx.fillStyle = '#202124';
+    ctx.font = 'bold 12px -apple-system, sans-serif';
+    ctx.fillText(name, 12, 4);
+    ctx.restore();
+  }
+
+  // 繪製 POI 類別 Badge
+  function drawPOIBadge(x, y, text, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.roundRect(0, -12, ctx.measureText(text).width + 12, 22, 11);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = color;
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillText(text, 6, 3);
+    ctx.restore();
+  }
+
+  // 繪製道路名稱
+  function drawRoadLabel(text, x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = '#70757a';
+    ctx.font = 'bold 11px -apple-system, sans-serif';
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  // 繪製賽車 (Google GPS Navigation Arrow / Sports Car)
   function drawCar() {
     ctx.save();
     ctx.translate(car.x, car.y);
-    ctx.rotate(car.angle);
+    ctx.rotate(car.angle + Math.PI / 2);
 
-    // 車頭朝右(+X)，因此旋轉 +PI/2 對齊
-    ctx.rotate(Math.PI / 2);
+    // 車輛陰影
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(-car.width / 2 + 2, -car.height / 2 + 3, car.width, car.height);
 
-    // 車身
-    ctx.fillStyle = '#e53935'; // PlayStation 紅色跑車
-    ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
+    // 車身 (Google Navigation Yellow / Sport Red)
+    ctx.fillStyle = '#ea4335'; 
+    ctx.beginPath();
+    ctx.roundRect(-car.width / 2, -car.height / 2, car.width, car.height, 4);
+    ctx.fill();
 
-    // 車頂/車窗
-    ctx.fillStyle = '#111111';
-    ctx.fillRect(-car.width / 2 + 2, -car.height / 4, car.width - 4, car.height / 2.5);
+    // 車頂條紋/窗戶
+    ctx.fillStyle = '#202124';
+    ctx.fillRect(-car.width / 2 + 2, -car.height / 6, car.width - 4, car.height / 2.5);
 
     // 前大燈
-    ctx.fillStyle = '#ffeb3b';
-    ctx.fillRect(-car.width / 2 + 1, -car.height / 2, 4, 3);
-    ctx.fillRect(car.width / 2 - 5, -car.height / 2, 4, 3);
+    ctx.fillStyle = '#fbbc04';
+    ctx.fillRect(-car.width / 2 + 1, -car.height / 2, 3, 2);
+    ctx.fillRect(car.width / 2 - 4, -car.height / 2, 3, 2);
 
     ctx.restore();
   }
 
-  // 更新車輛動態物理
+  // 賽車物理與控制邏輯
   function updatePhysics() {
     if (isPaused) return;
 
-    // 1. 轉向邏輯 (360 搖桿 / 鍵盤)
+    // 1. 360 度搖桿轉向
     if (controls.steeringVector.x !== 0 || controls.steeringVector.y !== 0) {
       const targetAngle = Math.atan2(controls.steeringVector.y, controls.steeringVector.x);
       
-      // 依車速決定轉向靈敏度 (靜止時無法轉向)
       if (Math.abs(car.speed) > 0.2) {
         let diff = targetAngle - car.angle;
-        // 標準化角度至 -PI ~ PI
         while (diff < -Math.PI) diff += Math.PI * 2;
         while (diff > Math.PI) diff -= Math.PI * 2;
 
@@ -439,45 +652,43 @@
       }
     }
 
-    // 2. 加速與剎車
+    // 2. 油門 & 剎車
     if (controls.gas) {
       car.speed = Math.min(car.speed + car.accel, car.maxSpeed);
     } else if (controls.brake) {
-      car.speed = Math.max(car.speed - car.brakeDecel, -car.maxSpeed * 0.4); // 支援倒車
+      car.speed = Math.max(car.speed - car.brakeDecel, -car.maxSpeed * 0.4);
     } else {
-      // 自然摩擦減速
       if (car.speed > 0) car.speed = Math.max(0, car.speed - car.friction);
       if (car.speed < 0) car.speed = Math.min(0, car.speed + car.friction);
     }
 
-    // 3. 移動車輛
+    // 3. 移動計算
     car.x += Math.cos(car.angle) * car.speed;
     car.y += Math.sin(car.angle) * car.speed;
 
-    // 4. HUD 數據更新
-    const kmh = Math.round(Math.abs(car.speed) * 18);
+    // 4. 時速與時間更新
+    const kmh = Math.round(Math.abs(car.speed) * 22);
     speedDisplay.innerText = kmh;
 
-    // 時間更新
     elapsedTime = Date.now() - startTime;
     const m = Math.floor(elapsedTime / 60000).toString().padStart(2, '0');
     const s = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
     const ms = Math.floor((elapsedTime % 1000) / 10).toString().padStart(2, '0');
     timeDisplay.innerText = `${m}:${s}.${ms}`;
 
-    // 5. 圈數判斷 (Checkpoints)
+    // 5. 檢查點圈數判定
     checkpoints.forEach((cp, idx) => {
       const dist = Math.hypot(car.x - cp.x, car.y - cp.y);
       if (dist < cp.radius) {
-        if (idx === 0 && checkpoints[1].passed && checkpoints[2].passed) {
+        if (idx === 0 && checkpoints[1].passed && checkpoints[2].passed && checkpoints[3].passed) {
           // 完成一圈
           if (currentLap < maxLaps) {
             currentLap++;
             lapDisplay.innerText = `${currentLap} / ${maxLaps}`;
-            checkpoints[1].passed = false;
-            checkpoints[2].passed = false;
+            checkpoints.forEach((c, i) => { if(i!==0) c.passed = false; });
           } else {
-            alert(`🎉 比賽完成！總用時：${m}:${s}.${ms}`);
+            alert(`🎉 恭喜完成沙田第一城-石門路線！
+⏱️ 總成績：${m}:${s}.${ms}`);
             resetGame();
           }
         } else if (idx !== 0) {
@@ -488,9 +699,9 @@
   }
 
   function resetGame() {
-    car.x = 480;
-    car.y = 380;
-    car.angle = -Math.PI / 2;
+    car.x = 310;
+    car.y = 780;
+    car.angle = -Math.PI * 0.75;
     car.speed = 0;
     currentLap = 1;
     lapDisplay.innerText = `1 / ${maxLaps}`;
@@ -498,17 +709,15 @@
     checkpoints.forEach(cp => cp.passed = false);
   }
 
-  // 主遊戲循環
+  // 主繪製循環
   function gameLoop() {
     updatePhysics();
-    drawMap();
+    drawGoogleMapBackground();
     drawCar();
     requestAnimationFrame(gameLoop);
   }
 
-  /* ---------------- 手柄操作邏輯 (PlayStation Controls) ---------------- */
-  
-  // 1. 360 度搖桿控制
+  /* ---------------- PlayStation 觸控搖桿 & 按鈕控制 ---------------- */
   const joyBase = document.getElementById('joystick-base');
   const joyStick = document.getElementById('joystick-stick');
   let joyActive = false;
@@ -524,7 +733,7 @@
     let dx = clientX - centerX;
     let dy = clientY - centerY;
     const distance = Math.hypot(dx, dy);
-    const maxRadius = 35; // 搖桿最大移動半徑
+    const maxRadius = 38;
 
     if (distance > maxRadius) {
       dx = (dx / distance) * maxRadius;
@@ -557,7 +766,7 @@
 
   window.addEventListener('touchend', handleJoystickEnd);
 
-  // 滑鼠相容支援 (電腦瀏覽器測試用)
+  // 滑鼠測試支援
   joyBase.addEventListener('mousedown', (e) => {
     joyActive = true;
     baseRect = joyBase.getBoundingClientRect();
@@ -568,7 +777,7 @@
   });
   window.addEventListener('mouseup', handleJoystickEnd);
 
-  // 2. 油門 & 剎車 按鈕觸控綁定
+  // 油門 & 剎車 按鈕
   const gasBtn = document.getElementById('gas-btn');
   const brakeBtn = document.getElementById('brake-btn');
 
@@ -581,14 +790,14 @@
   bindButton(gasBtn, 'gas');
   bindButton(brakeBtn, 'brake');
 
-  // 3. 暫停按鈕邏輯
+  // PAUSE 按鈕
   const pauseBtn = document.getElementById('pause-btn');
   pauseBtn.addEventListener('click', () => {
     isPaused = !isPaused;
     pauseOverlay.style.display = isPaused ? 'flex' : 'none';
   });
 
-  // 4. 電腦鍵盤相容支援 (WASD / 方向鍵)
+  // 鍵盤支援 (WASD / 方向鍵)
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp' || e.key === 'w') controls.gas = true;
     if (e.key === 'ArrowDown' || e.key === 's') controls.brake = true;
@@ -603,7 +812,7 @@
     if (['ArrowLeft', 'a', 'ArrowRight', 'd'].includes(e.key)) controls.steeringVector.x = 0;
   });
 
-  // 啟動遊戲 loop
+  // 啟動 Loop
   requestAnimationFrame(gameLoop);
 </script>
 </body>
