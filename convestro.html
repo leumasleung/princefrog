@@ -3,242 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Covestro Process Improvement Challenge</title>
+    <title>Covestro Lean Master - Eliminate the Waste!</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; user-select: none; }
         h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
         p.subtitle { color: #94a3b8; margin-top: 0; margin-bottom: 20px; }
         
-        .dashboard { display: flex; gap: 20px; background: #1e293b; padding: 15px 30px; border-radius: 12px; margin-bottom: 20px; width: 100%; max-width: 800px; justify-content: space-around; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        .dashboard { display: flex; gap: 20px; background: #1e293b; padding: 15px 30px; border-radius: 12px; margin-bottom: 20px; width: 100%; max-width: 600px; justify-content: space-around; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
         .stat-box { text-align: center; }
         .stat-value { font-size: 24px; font-weight: bold; color: #38bdf8; }
         .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
 
-        .game-container { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 800px; }
+        .game-board { width: 100%; max-width: 600px; height: 420px; background: #1e293b; border: 2px solid #334155; border-radius: 12px; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
         
-        .line-card { background: #1e293b; border-left: 6px solid #38bdf8; border-radius: 8px; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .line-card.has-issue { border-left-color: #ef4444; background: #2d1a24; }
-        .line-info { flex: 1; }
-        .line-title { font-weight: bold; font-size: 18px; margin-bottom: 5px; }
-        .line-status { font-size: 14px; color: #f59e0b; }
+        .conveyor-belt { position: absolute; bottom: 0; width: 100%; height: 20px; background: repeating-linear-gradient(45deg, #334155, #334155 10px, #475569 10px, #475569 20px); }
+
+        .target-item { position: absolute; padding: 12px 18px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 8px; }
+        .target-item:active { transform: scale(0.9); }
         
-        .drop-zone { border: 2px dashed #475569; border-radius: 8px; padding: 10px 20px; min-width: 160px; text-align: center; background: #0f172a; color: #64748b; font-size: 14px; }
-        .drop-zone.drag-over { border-color: #38bdf8; background: #1e3a5f; }
-
-        .tools-panel { width: 100%; max-width: 800px; background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 20px; }
-        .tools-title { font-size: 14px; color: #94a3b8; margin-bottom: 10px; font-weight: bold; }
-        .tools-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        /* 浪費 (Muda) - 點擊消除 */
+        .item-waste { background: #ef4444; color: white; border: 2px solid #fca5a5; }
         
-        .tool-card { background: #0284c7; color: white; padding: 10px 15px; border-radius: 6px; cursor: grab; font-weight: bold; font-size: 14px; user-select: none; transition: transform 0.1s; }
-        .tool-card:active { cursor: grabbing; transform: scale(0.95); }
+        /* 合格產物 - 不能點擊 */
+        .item-good { background: #10b981; color: white; border: 2px solid #6ee7b7; }
 
-        .btn { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; }
-        .btn:hover { background: #059669; }
+        .btn { background: #0284c7; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; transition: background 0.2s; }
+        .btn:hover { background: #0369a1; }
 
-        /* Pop-up modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 450px; border: 2px solid #38bdf8; }
+        .instructions { max-width: 600px; background: #1e293b; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #94a3b8; line-height: 1.5; }
+        .instructions span.red { color: #f87171; font-weight: bold; }
+        .instructions span.green { color: #34d399; font-weight: bold; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 450px; border: 2px solid #38bdf8; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .modal h2 { color: #38bdf8; margin-top: 0; }
         .modal p { line-height: 1.6; color: #e2e8f0; }
     </style>
 </head>
 <body>
 
-    <h1>Covestro 廠長大挑戰</h1>
-    <p class="subtitle">Process Improvement 專屬優化模擬器</p>
+    <h1>Eliminate the Waste!</h1>
+    <p class="subtitle">Covestro 防呆與精益浪費快消大挑戰</p>
 
     <div class="dashboard">
         <div class="stat-box">
-            <div class="stat-value" id="oee">70%</div>
-            <div class="stat-label">OEE (整體設備效率)</div>
+            <div class="stat-value" id="score">0</div>
+            <div class="stat-label">消除浪費積分</div>
         </div>
         <div class="stat-box">
-            <div class="stat-value" id="waste">25 kg</div>
-            <div class="stat-label">浪費/耗損</div>
+            <div class="stat-value" id="oee">80%</div>
+            <div class="stat-label">產線 OEE</div>
         </div>
         <div class="stat-box">
-            <div class="stat-value" id="timer">30s</div>
-            <div class="stat-label">剩餘時間</div>
+            <div class="stat-value" id="timer">25s</div>
+            <div class="stat-label">倒數時間</div>
         </div>
     </div>
 
-    <div class="game-container" id="lines-container">
+    <div class="game-board" id="board">
+        <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #475569; font-size: 18px; font-weight: bold;" id="startHint">
+            按下「開始遊戲」展開精益消除！
         </div>
-
-    <div class="tools-panel">
-        <div class="tools-title">拖放 PI 工具箱至問題產線：</div>
-        <div class="tools-grid">
-            <div class="tool-card" draggable="true" data-tool="5S">5S 現場管理</div>
-            <div class="tool-card" draggable="true" data-tool="RCA">根本原因分析 (RCA)</div>
-            <div class="tool-card" draggable="true" data-tool="Kaizen">Kaizen 持續改善</div>
-            <div class="tool-card" draggable="true" data-tool="Green">綠能循環模組</div>
-        </div>
+        <div class="conveyor-belt"></div>
     </div>
 
-    <button class="btn" onclick="startGame()">開始優化任務</button>
+    <button class="btn" id="startBtn" onclick="startGame()">開始遊戲</button>
 
+    <div class="instructions">
+        💡 <strong>遊戲規則：</strong><br>
+        1. 快速點擊掉落的 <span class="red">紅色浪費卡片 (Muda)</span> 進行消除，提升 OEE 與得分。<br>
+        2. 避開 <span class="green">綠色合格物料／永續模組</span>，點錯合格品會扣減 OEE！<br>
+        3. 25 秒內保持 OEE 在 90% 以上即可通關解鎖彩蛋！
+    </div>
+
+    <!-- 彩蛋彈窗 -->
     <div class="modal" id="winModal">
         <div class="modal-content">
-            <h2>🎉 任務完美達成！</h2>
-            <p><strong>Covestro 最厲害的 Process Improvement 專家！</strong></p>
-            <p>你成功將 OEE 提升至 <span id="finalOee" style="color:#38bdf8; font-weight:bold;"></span>，達成極致精益生產！</p>
+            <h2>🏆 零瑕疵達成！精益大師！</h2>
+            <p><strong>給最棒的 Covestro Process Improvement 專家：</strong></p>
+            <p>你以高超的手速與零失誤的防呆機制，成功將產線 OEE 保持在 <span id="finalOee" style="color:#38bdf8; font-weight:bold;"></span>！</p>
             <hr style="border-color: #334155; margin: 20px 0;">
             <p style="color: #f59e0b; font-size: 15px;">今晚辛苦了！特別獎勵：<br><strong>[在此填寫你準備的驚喜，例如：今晚大餐由老公買單 + 無限次按摩券！]</strong></p>
-            <button class="btn" onclick="closeModal()">重玩一次</button>
+            <button class="btn" onclick="closeModal()">再挑戰一次</button>
         </div>
     </div>
 
     <script>
-        const initialLines = [
-            { id: 1, name: "聚氨酯 (Polyurethane) 產線", issue: null, correctTool: null },
-            { id: 2, name: "聚碳酸酯 (Polycarbonate) 擠出線", issue: null, correctTool: null },
-            { id: 3, name: "生物基廢料回收與循環線", issue: null, correctTool: null }
+        const wastes = [
+            "⚠️ 等待時間過長", "⚠️ 搬運多餘距離", "⚠️ 瑕疵品重工", 
+            "⚠️ 庫存過度積壓", "⚠️ 過度加工流程", "⚠️ 動作不符合人體工學",
+            "⚠️ 設備異常停機", "⚠️ 能源過度消耗"
         ];
 
-        const issues = [
-            { text: "⚠️ 現場物料堆積混亂，尋找工具耗時", tool: "5S" },
-            { text: "⚠️ 產線發生未知異常，不良率持續飆高", tool: "RCA" },
-            { text: "⚠️ 換模換料時間過長，造成流程瓶頸", tool: "Kaizen" },
-            { text: "⚠️ 能耗與碳排放偏高，不符合永續目標", tool: "Green" }
+        const goods = [
+            "✅ 聚碳酸酯 (PC) 合格品", "✅ 聚氨酯 (PU) 高效原料", 
+            "✅ 生物基永續材料", "✅ Poka-Yoke 防呆裝置", 
+            "✅ 綠能低碳產線", "✅ 5S 標註成品"
         ];
 
-        let lines = JSON.parse(JSON.stringify(initialLines));
-        let oee = 70;
-        let waste = 25;
-        let timeLeft = 30;
-        let gameInterval = null;
-        let issueInterval = null;
+        let score = 0;
+        let oee = 80;
+        let timeLeft = 25;
         let isPlaying = false;
+        let gameTimer = null;
+        let spawnTimer = null;
 
-        function renderLines() {
-            const container = document.getElementById('lines-container');
-            container.innerHTML = '';
-            
-            lines.forEach(line => {
-                const card = document.createElement('div');
-                card.className = `line-card ${line.issue ? 'has-issue' : ''}`;
-                card.innerHTML = `
-                    <div class="line-info">
-                        <div class="line-title">${line.name}</div>
-                        <div class="line-status">${line.issue ? line.issue : '✅ 運作正常，高效率生產中'}</div>
-                    </div>
-                    <div class="drop-zone" data-line-id="${line.id}">
-                        ${line.issue ? '請拖放正確工具至此' : '狀態良好'}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            setupDragAndDrop();
-        }
-
-        function triggerRandomIssue() {
-            if (!isPlaying) return;
-            const availableLines = lines.filter(l => !l.issue);
-            if (availableLines.length > 0) {
-                const targetLine = availableLines[Math.floor(Math.random() * availableLines.length)];
-                const randomIssue = issues[Math.floor(Math.random() * issues.length)];
-                
-                targetLine.issue = randomIssue.text;
-                targetLine.correctTool = randomIssue.tool;
-                
-                oee = Math.max(40, oee - 5);
-                waste += 5;
-                updateStats();
-                renderLines();
-            }
-        }
-
-        function updateStats() {
+        function updateBoard() {
+            document.getElementById('score').innerText = score;
             document.getElementById('oee').innerText = oee + '%';
-            document.getElementById('waste').innerText = waste + ' kg';
             document.getElementById('timer').innerText = timeLeft + 's';
+        }
+
+        function spawnItem() {
+            if (!isPlaying) return;
+
+            const board = document.getElementById('board');
+            const item = document.createElement('div');
+            
+            // 65% 機率產生浪費，35% 機率產生合格品
+            const isWaste = Math.random() < 0.65;
+            const text = isWaste ? 
+                wastes[Math.floor(Math.random() * wastes.length)] : 
+                goods[Math.floor(Math.random() * goods.length)];
+
+            item.className = `target-item ${isWaste ? 'item-waste' : 'item-good'}`;
+            item.innerText = text;
+
+            // 隨機生成 X 軸位置 (留出邊界)
+            const maxX = board.clientWidth - 200;
+            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+            item.style.left = randomX + 'px';
+            item.style.top = '-50px';
+
+            board.appendChild(item);
+
+            // 下落動畫
+            let posY = -50;
+            const speed = 2 + Math.random() * 2.5; // 動態速度
+            
+            const fallInterval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(fallInterval);
+                    item.remove();
+                    return;
+                }
+
+                posY += speed;
+                item.style.top = posY + 'px';
+
+                // 落地檢查
+                if (posY > board.clientHeight - 60) {
+                    clearInterval(fallInterval);
+                    if (isWaste) {
+                        // 浪費未被消除，扣 OEE
+                        oee = Math.max(30, oee - 3);
+                        updateBoard();
+                    }
+                    item.style.opacity = '0';
+                    setTimeout(() => item.remove(), 200);
+                }
+            }, 20);
+
+            // 點擊事件
+            item.onclick = () => {
+                clearInterval(fallInterval);
+                if (isWaste) {
+                    score += 10;
+                    oee = Math.min(100, oee + 2);
+                } else {
+                    // 誤點合格品，扣分扣 OEE
+                    score = Math.max(0, score - 15);
+                    oee = Math.max(30, oee - 8);
+                }
+                updateBoard();
+                
+                // 消退效果
+                item.style.transform = 'scale(1.2)';
+                item.style.opacity = '0';
+                setTimeout(() => item.remove(), 150);
+            };
         }
 
         function startGame() {
             if (isPlaying) return;
-            isPlaying = true;
-            oee = 70;
-            waste = 25;
-            timeLeft = 30;
-            lines = JSON.parse(JSON.stringify(initialLines));
-            updateStats();
-            renderLines();
 
-            gameInterval = setInterval(() => {
+            isPlaying = true;
+            score = 0;
+            oee = 80;
+            timeLeft = 25;
+            document.getElementById('startHint').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'none';
+            updateBoard();
+
+            // 主計時器
+            gameTimer = setInterval(() => {
                 timeLeft--;
-                updateStats();
+                updateBoard();
+
                 if (timeLeft <= 0) {
                     endGame();
                 }
             }, 1000);
 
-            issueInterval = setInterval(triggerRandomIssue, 2500);
+            // 生成物料計時器
+            spawnTimer = setInterval(spawnItem, 700);
         }
 
         function endGame() {
-            clearInterval(gameInterval);
-            clearInterval(issueInterval);
             isPlaying = false;
-            
-            if (oee >= 85) {
+            clearInterval(gameTimer);
+            clearInterval(spawnTimer);
+
+            // 清空畫面上剩餘的卡片
+            const items = document.querySelectorAll('.target-item');
+            items.forEach(i => i.remove());
+
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('startBtn').innerText = '再試一次';
+
+            if (oee >= 90) {
                 document.getElementById('finalOee').innerText = oee + '%';
                 document.getElementById('winModal').style.display = 'flex';
             } else {
-                alert(`挑戰結束！最終 OEE 為 ${oee}%。再試一次，展現精益改善的實力吧！`);
+                alert(`遊戲結束！獲得積分：${score}，最終 OEE：${oee}%\n再接再厲，發揮精益精神把 OEE 提升到 90% 以上吧！`);
             }
         }
 
         function closeModal() {
             document.getElementById('winModal').style.display = 'none';
         }
-
-        function setupDragAndDrop() {
-            const toolCards = document.querySelectorAll('.tool-card');
-            const dropZones = document.querySelectorAll('.drop-zone');
-
-            toolCards.forEach(card => {
-                card.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', e.target.dataset.tool);
-                });
-            });
-
-            dropZones.forEach(zone => {
-                zone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    zone.classList.add('drag-over');
-                });
-
-                zone.addEventListener('dragleave', () => {
-                    zone.classList.remove('drag-over');
-                });
-
-                zone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    zone.classList.remove('drag-over');
-                    const tool = e.dataTransfer.getData('text/plain');
-                    const lineId = parseInt(zone.dataset.lineId);
-                    
-                    const line = lines.find(l => l.id === lineId);
-                    if (line && line.issue) {
-                        if (line.correctTool === tool) {
-                            line.issue = null;
-                            line.correctTool = null;
-                            oee = Math.min(100, oee + 10);
-                            waste = Math.max(0, waste - 8);
-                            updateStats();
-                            renderLines();
-                        } else {
-                            alert('工具不匹配！請選擇更合適的 PI 改善方法。');
-                        }
-                    }
-                });
-            });
-        }
-
-        // 初始化繪製
-        renderLines();
     </script>
 </body>
 </html>
