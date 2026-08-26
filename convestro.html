@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Covestro Process Improvement Challenge</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
+        p.subtitle { color: #94a3b8; margin-top: 0; margin-bottom: 20px; }
+        
+        .dashboard { display: flex; gap: 20px; background: #1e293b; padding: 15px 30px; border-radius: 12px; margin-bottom: 20px; width: 100%; max-width: 800px; justify-content: space-around; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        .stat-box { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #38bdf8; }
+        .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+
+        .game-container { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 800px; }
+        
+        .line-card { background: #1e293b; border-left: 6px solid #38bdf8; border-radius: 8px; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .line-card.has-issue { border-left-color: #ef4444; background: #2d1a24; }
+        .line-info { flex: 1; }
+        .line-title { font-weight: bold; font-size: 18px; margin-bottom: 5px; }
+        .line-status { font-size: 14px; color: #f59e0b; }
+        
+        .drop-zone { border: 2px dashed #475569; border-radius: 8px; padding: 10px 20px; min-width: 160px; text-align: center; background: #0f172a; color: #64748b; font-size: 14px; }
+        .drop-zone.drag-over { border-color: #38bdf8; background: #1e3a5f; }
+
+        .tools-panel { width: 100%; max-width: 800px; background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        .tools-title { font-size: 14px; color: #94a3b8; margin-bottom: 10px; font-weight: bold; }
+        .tools-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        .tool-card { background: #0284c7; color: white; padding: 10px 15px; border-radius: 6px; cursor: grab; font-weight: bold; font-size: 14px; user-select: none; transition: transform 0.1s; }
+        .tool-card:active { cursor: grabbing; transform: scale(0.95); }
+
+        .btn { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .btn:hover { background: #059669; }
+
+        /* Pop-up modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 450px; border: 2px solid #38bdf8; }
+        .modal h2 { color: #38bdf8; margin-top: 0; }
+        .modal p { line-height: 1.6; color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <h1>Covestro 廠長大挑戰</h1>
+    <p class="subtitle">Process Improvement 專屬優化模擬器</p>
+
+    <div class="dashboard">
+        <div class="stat-box">
+            <div class="stat-value" id="oee">70%</div>
+            <div class="stat-label">OEE (整體設備效率)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="waste">25 kg</div>
+            <div class="stat-label">浪費/耗損</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="timer">30s</div>
+            <div class="stat-label">剩餘時間</div>
+        </div>
+    </div>
+
+    <div class="game-container" id="lines-container">
+        </div>
+
+    <div class="tools-panel">
+        <div class="tools-title">拖放 PI 工具箱至問題產線：</div>
+        <div class="tools-grid">
+            <div class="tool-card" draggable="true" data-tool="5S">5S 現場管理</div>
+            <div class="tool-card" draggable="true" data-tool="RCA">根本原因分析 (RCA)</div>
+            <div class="tool-card" draggable="true" data-tool="Kaizen">Kaizen 持續改善</div>
+            <div class="tool-card" draggable="true" data-tool="Green">綠能循環模組</div>
+        </div>
+    </div>
+
+    <button class="btn" onclick="startGame()">開始優化任務</button>
+
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 任務完美達成！</h2>
+            <p><strong>Covestro 最厲害的 Process Improvement 專家！</strong></p>
+            <p>你成功將 OEE 提升至 <span id="finalOee" style="color:#38bdf8; font-weight:bold;"></span>，達成極致精益生產！</p>
+            <hr style="border-color: #334155; margin: 20px 0;">
+            <p style="color: #f59e0b; font-size: 15px;">今晚辛苦了！特別獎勵：<br><strong>[在此填寫你準備的驚喜，例如：今晚大餐由老公買單 + 無限次按摩券！]</strong></p>
+            <button class="btn" onclick="closeModal()">重玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        const initialLines = [
+            { id: 1, name: "聚氨酯 (Polyurethane) 產線", issue: null, correctTool: null },
+            { id: 2, name: "聚碳酸酯 (Polycarbonate) 擠出線", issue: null, correctTool: null },
+            { id: 3, name: "生物基廢料回收與循環線", issue: null, correctTool: null }
+        ];
+
+        const issues = [
+            { text: "⚠️ 現場物料堆積混亂，尋找工具耗時", tool: "5S" },
+            { text: "⚠️ 產線發生未知異常，不良率持續飆高", tool: "RCA" },
+            { text: "⚠️ 換模換料時間過長，造成流程瓶頸", tool: "Kaizen" },
+            { text: "⚠️ 能耗與碳排放偏高，不符合永續目標", tool: "Green" }
+        ];
+
+        let lines = JSON.parse(JSON.stringify(initialLines));
+        let oee = 70;
+        let waste = 25;
+        let timeLeft = 30;
+        let gameInterval = null;
+        let issueInterval = null;
+        let isPlaying = false;
+
+        function renderLines() {
+            const container = document.getElementById('lines-container');
+            container.innerHTML = '';
+            
+            lines.forEach(line => {
+                const card = document.createElement('div');
+                card.className = `line-card ${line.issue ? 'has-issue' : ''}`;
+                card.innerHTML = `
+                    <div class="line-info">
+                        <div class="line-title">${line.name}</div>
+                        <div class="line-status">${line.issue ? line.issue : '✅ 運作正常，高效率生產中'}</div>
+                    </div>
+                    <div class="drop-zone" data-line-id="${line.id}">
+                        ${line.issue ? '請拖放正確工具至此' : '狀態良好'}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            setupDragAndDrop();
+        }
+
+        function triggerRandomIssue() {
+            if (!isPlaying) return;
+            const availableLines = lines.filter(l => !l.issue);
+            if (availableLines.length > 0) {
+                const targetLine = availableLines[Math.floor(Math.random() * availableLines.length)];
+                const randomIssue = issues[Math.floor(Math.random() * issues.length)];
+                
+                targetLine.issue = randomIssue.text;
+                targetLine.correctTool = randomIssue.tool;
+                
+                oee = Math.max(40, oee - 5);
+                waste += 5;
+                updateStats();
+                renderLines();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('oee').innerText = oee + '%';
+            document.getElementById('waste').innerText = waste + ' kg';
+            document.getElementById('timer').innerText = timeLeft + 's';
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            isPlaying = true;
+            oee = 70;
+            waste = 25;
+            timeLeft = 30;
+            lines = JSON.parse(JSON.stringify(initialLines));
+            updateStats();
+            renderLines();
+
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                updateStats();
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            issueInterval = setInterval(triggerRandomIssue, 2500);
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(issueInterval);
+            isPlaying = false;
+            
+            if (oee >= 85) {
+                document.getElementById('finalOee').innerText = oee + '%';
+                document.getElementById('winModal').style.display = 'flex';
+            } else {
+                alert(`挑戰結束！最終 OEE 為 ${oee}%。再試一次，展現精益改善的實力吧！`);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('winModal').style.display = 'none';
+        }
+
+        function setupDragAndDrop() {
+            const toolCards = document.querySelectorAll('.tool-card');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            toolCards.forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.tool);
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    const tool = e.dataTransfer.getData('text/plain');
+                    const lineId = parseInt(zone.dataset.lineId);
+                    
+                    const line = lines.find(l => l.id === lineId);
+                    if (line && line.issue) {
+                        if (line.correctTool === tool) {
+                            line.issue = null;
+                            line.correctTool = null;
+                            oee = Math.min(100, oee + 10);
+                            waste = Math.max(0, waste - 8);
+                            updateStats();
+                            renderLines();
+                        } else {
+                            alert('工具不匹配！請選擇更合適的 PI 改善方法。');
+                        }
+                    }
+                });
+            });
+        }
+
+        // 初始化繪製
+        renderLines();
+    </script>
+</body>
+</html>
