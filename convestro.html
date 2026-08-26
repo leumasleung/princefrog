@@ -3,237 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Covestro Lean Master - Eliminate the Waste!</title>
+    <title>Covestro Value Stream - Mini Factory Flow</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; user-select: none; }
-        h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
-        p.subtitle { color: #94a3b8; margin-top: 0; margin-bottom: 20px; }
-        
-        .dashboard { display: flex; gap: 20px; background: #1e293b; padding: 15px 30px; border-radius: 12px; margin-bottom: 20px; width: 100%; max-width: 600px; justify-content: space-around; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        body { background: #0b1329; color: #f8fafc; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; user-select: none; }
+        h1 { color: #38bdf8; margin: 5px 0; text-align: center; font-size: 26px; }
+        p.subtitle { color: #94a3b8; margin: 0 0 15px 0; font-size: 13px; text-align: center; }
+
+        .dashboard { display: flex; gap: 15px; background: #1e293b; padding: 12px 20px; border-radius: 12px; margin-bottom: 15px; width: 100%; max-width: 800px; justify-content: space-around; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1px solid #334155; }
         .stat-box { text-align: center; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #38bdf8; }
-        .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+        .stat-value { font-size: 22px; font-weight: bold; color: #38bdf8; }
+        .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
 
-        .game-board { width: 100%; max-width: 600px; height: 420px; background: #1e293b; border: 2px solid #334155; border-radius: 12px; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-        
-        .conveyor-belt { position: absolute; bottom: 0; width: 100%; height: 20px; background: repeating-linear-gradient(45deg, #334155, #334155 10px, #475569 10px, #475569 20px); }
+        .canvas-container { position: relative; width: 100%; max-width: 800px; height: 400px; background: #0f172a; border-radius: 12px; border: 2px solid #334155; box-shadow: inset 0 0 25px rgba(0,0,0,0.6); overflow: hidden; }
+        canvas { display: block; width: 100%; height: 100%; }
 
-        .target-item { position: absolute; padding: 12px 18px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 8px; }
-        .target-item:active { transform: scale(0.9); }
-        
-        /* 浪費 (Muda) - 點擊消除 */
-        .item-waste { background: #ef4444; color: white; border: 2px solid #fca5a5; }
-        
-        /* 合格產物 - 不能點擊 */
-        .item-good { background: #10b981; color: white; border: 2px solid #6ee7b7; }
+        .controls-panel { display: flex; gap: 10px; width: 100%; max-width: 800px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+        .upgrade-btn { background: #1e293b; border: 1px solid #38bdf8; color: #f8fafc; padding: 10px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .upgrade-btn:hover { background: #0284c7; border-color: #38bdf8; }
+        .upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #475569; background: #1e293b; }
+        .upgrade-btn span.cost { font-size: 11px; color: #f59e0b; margin-top: 2px; }
 
-        .btn { background: #0284c7; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 20px; transition: background 0.2s; }
-        .btn:hover { background: #0369a1; }
-
-        .instructions { max-width: 600px; background: #1e293b; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #94a3b8; line-height: 1.5; }
-        .instructions span.red { color: #f87171; font-weight: bold; }
-        .instructions span.green { color: #34d399; font-weight: bold; }
+        .action-btn { background: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+        .action-btn:hover { background: #059669; }
 
         /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 450px; border: 2px solid #38bdf8; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 480px; border: 2px solid #38bdf8; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .modal h2 { color: #38bdf8; margin-top: 0; }
-        .modal p { line-height: 1.6; color: #e2e8f0; }
+        .modal p { line-height: 1.6; color: #e2e8f0; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <h1>Eliminate the Waste!</h1>
-    <p class="subtitle">Covestro 防呆與精益浪費快消大挑戰</p>
+    <h1>Mini Covestro Factory</h1>
+    <p class="subtitle">極致價值流 (Value Stream) & 瓶頸消除模擬器</p>
 
     <div class="dashboard">
         <div class="stat-box">
-            <div class="stat-value" id="score">0</div>
-            <div class="stat-label">消除浪費積分</div>
+            <div class="stat-value" id="flowRate">0 kg/s</div>
+            <div class="stat-label">產線流速 (Throughput)</div>
         </div>
         <div class="stat-box">
-            <div class="stat-value" id="oee">80%</div>
-            <div class="stat-label">產線 OEE</div>
+            <div class="stat-value" id="cqPoints">0</div>
+            <div class="stat-label">CQ 循環點數</div>
         </div>
         <div class="stat-box">
-            <div class="stat-value" id="timer">25s</div>
-            <div class="stat-label">倒數時間</div>
+            <div class="stat-value" id="efficiency" style="color: #4ade80;">100%</div>
+            <div class="stat-label">價值流效率</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="totalOutput">0 kg</div>
+            <div class="stat-label">總產出量 (目標: 500kg)</div>
         </div>
     </div>
 
-    <div class="game-board" id="board">
-        <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #475569; font-size: 18px; font-weight: bold;" id="startHint">
-            按下「開始遊戲」展開精益消除！
-        </div>
-        <div class="conveyor-belt"></div>
+    <div class="canvas-container">
+        <canvas id="factoryCanvas"></canvas>
     </div>
 
-    <button class="btn" id="startBtn" onclick="startGame()">開始遊戲</button>
-
-    <div class="instructions">
-        💡 <strong>遊戲規則：</strong><br>
-        1. 快速點擊掉落的 <span class="red">紅色浪費卡片 (Muda)</span> 進行消除，提升 OEE 與得分。<br>
-        2. 避開 <span class="green">綠色合格物料／永續模組</span>，點錯合格品會扣減 OEE！<br>
-        3. 25 秒內保持 OEE 在 90% 以上即可通關解鎖彩蛋！
+    <div class="controls-panel">
+        <button class="upgrade-btn" id="upPokaYoke" onclick="buyUpgrade('pokaYoke')">
+            🛡️ 導入 Poka-Yoke 防呆機制
+            <span class="cost">消耗 50 CQ 點數 (降低瓶頸率)</span>
+        </button>
+        <button class="upgrade-btn" id="upAutoRecycle" onclick="buyUpgrade('autoRecycle')">
+            ♻️ CQ 廢料自動循環迴路
+            <span class="cost">消耗 100 CQ 點數 (提高點數收益)</span>
+        </button>
+        <button class="action-btn" id="startBtn" onclick="toggleGame()">開始價值流運轉</button>
     </div>
 
-    <!-- 彩蛋彈窗 -->
+    <!-- 破關驚喜彈窗 -->
     <div class="modal" id="winModal">
         <div class="modal-content">
-            <h2>🏆 零瑕疵達成！精益大師！</h2>
-            <p><strong>給最棒的 Covestro Process Improvement 專家：</strong></p>
-            <p>你以高超的手速與零失誤的防呆機制，成功將產線 OEE 保持在 <span id="finalOee" style="color:#38bdf8; font-weight:bold;"></span>！</p>
+            <h2>✨ 完美極致價值流！</h2>
+            <p><strong>給最優秀的 Covestro Process Improvement 專家：</strong></p>
+            <p>你成功排除所有瓶頸，達成 500kg 高品質 Makrolon® 與 CQ 永續材料產出，價值流效率維持在 <span id="finalEff" style="color:#38bdf8; font-weight:bold;"></span>！</p>
             <hr style="border-color: #334155; margin: 20px 0;">
             <p style="color: #f59e0b; font-size: 15px;">今晚辛苦了！特別獎勵：<br><strong>[在此填寫你準備的驚喜，例如：今晚大餐由老公買單 + 無限次按摩券！]</strong></p>
-            <button class="btn" onclick="closeModal()">再挑戰一次</button>
+            <button class="action-btn" onclick="closeModal()">繼續優化廠區</button>
         </div>
     </div>
 
     <script>
-        const wastes = [
-            "⚠️ 等待時間過長", "⚠️ 搬運多餘距離", "⚠️ 瑕疵品重工", 
-            "⚠️ 庫存過度積壓", "⚠️ 過度加工流程", "⚠️ 動作不符合人體工學",
-            "⚠️ 設備異常停機", "⚠️ 能源過度消耗"
+        const canvas = document.getElementById('factoryCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 廠區節點 (Factory Nodes)
+        let nodes = [
+            { id: 1, name: "CQ 生物基/回收顆粒", x: 0.1, y: 0.5, queue: 0, maxQueue: 20, isClogged: false, color: "#10b981" },
+            { id: 2, name: "Desmodur® / PC 融合反應釜", x: 0.32, y: 0.3, queue: 0, maxQueue: 15, isClogged: false, color: "#38bdf8" },
+            { id: 3, name: "Makrofol® 精密光學擠出", x: 0.55, y: 0.7, queue: 0, maxQueue: 15, isClogged: false, color: "#f59e0b" },
+            { id: 4, name: "Poka-Yoke 智能質檢", x: 0.75, y: 0.4, queue: 0, maxQueue: 12, isClogged: false, color: "#a855f7" },
+            { id: 5, name: "ADAS 雷達罩 / 護照成品", x: 0.92, y: 0.5, queue: 0, maxQueue: 999, isClogged: false, color: "#34d399" }
         ];
 
-        const goods = [
-            "✅ 聚碳酸酯 (PC) 合格品", "✅ 聚氨酯 (PU) 高效原料", 
-            "✅ 生物基永續材料", "✅ Poka-Yoke 防呆裝置", 
-            "✅ 綠能低碳產線", "✅ 5S 標註成品"
-        ];
-
-        let score = 0;
-        let oee = 80;
-        let timeLeft = 25;
+        let particles = [];
+        let cqPoints = 0;
+        let totalOutput = 0;
         let isPlaying = false;
-        let gameTimer = null;
-        let spawnTimer = null;
+        let pokaYokeLevel = 0;
+        let autoRecycleLevel = 0;
+        let lastSpawn = 0;
+        let lastClogTime = 0;
 
-        function updateBoard() {
-            document.getElementById('score').innerText = score;
-            document.getElementById('oee').innerText = oee + '%';
-            document.getElementById('timer').innerText = timeLeft + 's';
-        }
-
-        function spawnItem() {
-            if (!isPlaying) return;
-
-            const board = document.getElementById('board');
-            const item = document.createElement('div');
-            
-            // 65% 機率產生浪費，35% 機率產生合格品
-            const isWaste = Math.random() < 0.65;
-            const text = isWaste ? 
-                wastes[Math.floor(Math.random() * wastes.length)] : 
-                goods[Math.floor(Math.random() * goods.length)];
-
-            item.className = `target-item ${isWaste ? 'item-waste' : 'item-good'}`;
-            item.innerText = text;
-
-            // 隨機生成 X 軸位置 (留出邊界)
-            const maxX = board.clientWidth - 200;
-            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
-            item.style.left = randomX + 'px';
-            item.style.top = '-50px';
-
-            board.appendChild(item);
-
-            // 下落動畫
-            let posY = -50;
-            const speed = 2 + Math.random() * 2.5; // 動態速度
-            
-            const fallInterval = setInterval(() => {
-                if (!isPlaying) {
-                    clearInterval(fallInterval);
-                    item.remove();
-                    return;
-                }
-
-                posY += speed;
-                item.style.top = posY + 'px';
-
-                // 落地檢查
-                if (posY > board.clientHeight - 60) {
-                    clearInterval(fallInterval);
-                    if (isWaste) {
-                        // 浪費未被消除，扣 OEE
-                        oee = Math.max(30, oee - 3);
-                        updateBoard();
-                    }
-                    item.style.opacity = '0';
-                    setTimeout(() => item.remove(), 200);
-                }
-            }, 20);
-
-            // 點擊事件
-            item.onclick = () => {
-                clearInterval(fallInterval);
-                if (isWaste) {
-                    score += 10;
-                    oee = Math.min(100, oee + 2);
-                } else {
-                    // 誤點合格品，扣分扣 OEE
-                    score = Math.max(0, score - 15);
-                    oee = Math.max(30, oee - 8);
-                }
-                updateBoard();
-                
-                // 消退效果
-                item.style.transform = 'scale(1.2)';
-                item.style.opacity = '0';
-                setTimeout(() => item.remove(), 150);
-            };
-        }
-
-        function startGame() {
-            if (isPlaying) return;
-
-            isPlaying = true;
-            score = 0;
-            oee = 80;
-            timeLeft = 25;
-            document.getElementById('startHint').style.display = 'none';
-            document.getElementById('startBtn').style.display = 'none';
-            updateBoard();
-
-            // 主計時器
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                updateBoard();
-
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-
-            // 生成物料計時器
-            spawnTimer = setInterval(spawnItem, 700);
-        }
-
-        function endGame() {
-            isPlaying = false;
-            clearInterval(gameTimer);
-            clearInterval(spawnTimer);
-
-            // 清空畫面上剩餘的卡片
-            const items = document.querySelectorAll('.target-item');
-            items.forEach(i => i.remove());
-
-            document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('startBtn').innerText = '再試一次';
-
-            if (oee >= 90) {
-                document.getElementById('finalOee').innerText = oee + '%';
-                document.getElementById('winModal').style.display = 'flex';
-            } else {
-                alert(`遊戲結束！獲得積分：${score}，最終 OEE：${oee}%\n再接再厲，發揮精益精神把 OEE 提升到 90% 以上吧！`);
+        class Particle {
+            constructor(startNode) {
+                this.currentNodeIndex = 0;
+                this.x = nodes[0].x * canvas.width;
+                this.y = nodes[0].y * canvas.height;
+                this.speed = 2.5;
+                this.progress = 0;
+                this.color = nodes[0].color;
             }
+
+            update() {
+                if (this.currentNodeIndex >= nodes.length - 1) return true;
+
+                const start = nodes[this.currentNodeIndex];
+                const end = nodes[this.currentNodeIndex + 1];
+
+                // 如果下一個節點堵塞，粒子移動減速
+                const speedMult = end.isClogged ? 0.2 : 1.0;
+                this.progress += (this.speed * speedMult) / 100;
+
+                const startX = start.x * canvas.width;
+                const startY = start.y * canvas.height;
+                const endX = end.x * canvas.width;
+                const endY = end.y * canvas.height;
+
+                this.x = startX + (endX - startX) * this.progress;
+                this.y = startY + (endY - startY) * this.progress;
+
+                if (this.progress >= 1) {
+                    this.progress = 0;
+                    this.currentNodeIndex++;
+                    end.queue++;
+
+                    if (this.currentNodeIndex === nodes.length - 1) {
+                        // 抵達終點產出
+                        totalOutput += 2;
+                        cqPoints += 5 * (1 + autoRecycleLevel * 0.5);
+                        return true; 
+                    }
+                }
+                return false;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // 點擊事件：進行 Kaizen 疏通瓶頸
+        canvas.addEventListener('click', (e) => {
+            if (!isPlaying) return;
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            nodes.forEach(node => {
+                const nx = node.x * canvas.width;
+                const ny = node.y * canvas.height;
+                const dist = Math.hypot(clickX - nx, clickY - ny);
+
+                if (dist < 35 && node.isClogged) {
+                    node.isClogged = false;
+                    node.queue = Math.floor(node.queue / 2);
+                    cqPoints += 15; // 疏通獎勵
+                    createRipple(nx, ny);
+                }
+            });
+        });
+
+        let ripples = [];
+        function createRipple(x, y) {
+            ripples.push({ x, y, radius: 10, alpha: 1 });
+        }
+
+        function gameLoop(timestamp) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 繪製管道 (Pipelines)
+            for (let i = 0; i < nodes.length - 1; i++) {
+                const n1 = nodes[i];
+                const n2 = nodes[i + 1];
+                ctx.beginPath();
+                ctx.moveTo(n1.x * canvas.width, n1.y * canvas.height);
+                ctx.lineTo(n2.x * canvas.width, n2.y * canvas.height);
+                ctx.lineWidth = n2.isClogged ? 6 : 4;
+                ctx.strokeStyle = n2.isClogged ? "#ef4444" : "#334155";
+                ctx.stroke();
+            }
+
+            // 更新與繪製粒子
+            if (isPlaying) {
+                if (timestamp - lastSpawn > 800) {
+                    particles.push(new Particle());
+                    lastSpawn = timestamp;
+                }
+
+                // 隨機引發瓶頸 (Bottleneck)
+                if (timestamp - lastClogTime > (6000 - pokaYokeLevel * 1200)) {
+                    const targetNode = nodes[1 + Math.floor(Math.random() * 3)];
+                    targetNode.isClogged = true;
+                    lastClogTime = timestamp;
+                }
+            }
+
+            particles = particles.filter(p => {
+                p.draw();
+                return !p.update();
+            });
+
+            // 繪製廠區節點 (Nodes)
+            nodes.forEach((node, index) => {
+                const nx = node.x * canvas.width;
+                const ny = node.y * canvas.height;
+
+                // 節點外圈發光
+                ctx.beginPath();
+                ctx.arc(nx, ny, 22, 0, Math.PI * 2);
+                ctx.fillStyle = node.isClogged ? "rgba(239, 68, 68, 0.3)" : "rgba(30, 41, 59, 0.8)";
+                ctx.strokeStyle = node.isClogged ? "#ef4444" : node.color;
+                ctx.lineWidth = 3;
+                ctx.fill();
+                ctx.stroke();
+
+                // 繪製標籤
+                ctx.fillStyle = "#f8fafc";
+                ctx.font = "12px Segoe UI";
+                ctx.textAlign = "center";
+                ctx.fillText(node.name, nx, ny + 38);
+
+                // 瓶頸警告標籤
+                if (node.isClogged) {
+                    ctx.fillStyle = "#ef4444";
+                    ctx.font = "bold 11px Segoe UI";
+                    ctx.fillText("⚠️ 瓶頸 (點擊 Kaizen 疏通)", nx, ny - 30);
+                }
+            });
+
+            // 水波擴散特效
+            ripples.forEach((r, idx) => {
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(56, 189, 248, ${r.alpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                r.radius += 2;
+                r.alpha -= 0.03;
+                if (r.alpha <= 0) ripples.splice(idx, 1);
+            });
+
+            updateUI();
+
+            // 通關判定
+            if (totalOutput >= 500 && isPlaying) {
+                isPlaying = false;
+                document.getElementById('finalEff').innerText = getEfficiency() + '%';
+                document.getElementById('winModal').style.display = 'flex';
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function getEfficiency() {
+            const cloggedCount = nodes.filter(n => n.isClogged).length;
+            return Math.max(50, 100 - cloggedCount * 18);
+        }
+
+        function updateUI() {
+            document.getElementById('cqPoints').innerText = Math.floor(cqPoints);
+            document.getElementById('totalOutput').innerText = totalOutput + ' kg';
+            document.getElementById('efficiency').innerText = getEfficiency() + '%';
+            document.getElementById('flowRate').innerText = isPlaying ? (particles.length * 1.2).toFixed(1) + ' kg/s' : '0 kg/s';
+
+            document.getElementById('upPokaYoke').disabled = cqPoints < 50;
+            document.getElementById('upAutoRecycle').disabled = cqPoints < 100;
+        }
+
+        function buyUpgrade(type) {
+            if (type === 'pokaYoke' && cqPoints >= 50) {
+                cqPoints -= 50;
+                pokaYokeLevel++;
+                alert('🛡️ Poka-Yoke 防呆升級成功！瓶頸發生率下降！');
+            } else if (type === 'autoRecycle' && cqPoints >= 100) {
+                cqPoints -= 100;
+                autoRecycleLevel++;
+                alert('♻️ CQ 循環迴路升級成功！點數產出率增加！');
+            }
+        }
+
+        function toggleGame() {
+            isPlaying = !isPlaying;
+            document.getElementById('startBtn').innerText = isPlaying ? '暫停廠區' : '繼續運轉';
         }
 
         function closeModal() {
             document.getElementById('winModal').style.display = 'none';
         }
+
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
