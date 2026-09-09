@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>辦公室核心能力評估 & 員工證生成</title>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入 html2canvas 庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --bg-color: #ecf0f1;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        h1 { margin-bottom: 30px; color: var(--primary-color); }
+
+        .main-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* 輸入控制面板 */
+        .controls-panel {
+            flex: 1;
+            min-width: 320px;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .controls-panel h3 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        .form-group input[type="text"] {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px;
+        }
+        .form-group input[type="text"]:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 5px rgba(52,152,219,0.3); }
+
+        .slider-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;}
+        .slider-group label { font-weight: bold; flex: 1; font-size: 14px; margin-bottom: 0; }
+        .slider-group input[type="range"] { flex: 2; accent-color: var(--accent-color); cursor: pointer; }
+        .slider-group .value-display { width: 30px; text-align: right; font-weight: bold; color: var(--accent-color); font-size: 16px; }
+
+        .action-btn {
+            display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 20px;
+        }
+        #generateBtn { background-color: var(--accent-color); color: white; }
+        #generateBtn:hover { background-color: #2980b9; }
+
+        /* 員工證預覽區域 */
+        .badge-preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #saveBtn { background-color: var(--success-color); color: white; display: none; }
+        #saveBtn:hover { background-color: #219150; }
+
+        /* ====== 員工證卡片樣式 (直式) ====== */
+        .id-badge {
+            width: 300px;
+            height: 480px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #eee;
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+        }
+
+        /* 頂部裝飾條 */
+        .id-badge::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 80px;
+            background: linear-gradient(120deg, var(--primary-color) 0%, #34495e 100%);
+            border-bottom-left-radius: 50% 20px;
+            border-bottom-right-radius: 50% 20px;
+        }
+
+        .badge-header {
+            position: relative;
+            z-index: 10;
+            color: white;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .badge-header .comp-name { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; }
+        .badge-header .title { font-size: 18px; font-weight: bold; margin-top: 2px; }
+
+        .badge-photo-area {
+            margin-top: 25px; /* 移出頂部藍色區域 */
+            position: relative;
+            z-index: 10;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: #eee;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            color: #bbb; font-size: 40px;
+        }
+        .badge-photo-area img { width: 100%; height: 100%; object-fit: cover; }
+
+        .badge-info {
+            margin-top: 15px;
+            text-align: center;
+            width: 80%;
+        }
+        .badge-name { font-size: 22px; font-weight: bold; color: var(--primary-color); }
+        .badge-dept { font-size: 12px; color: #7f8c8d; margin-top: 2px; text-transform: uppercase; }
+
+        /* 雷達圖在卡片中的容器 */
+        .badge-chart-container {
+            width: 90%;
+            height: 180px;
+            margin-top: 20px;
+            flex-grow: 1; /* 佔用剩餘空間，推擠下方 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .badge-footer {
+            width: 100%;
+            background: #f4f4f4;
+            padding: 10px 0;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 10px;
+            color: #aaa;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>辦公室核心能力評估</h1>
+
+    <div class="main-wrapper">
+        <!-- 輸入與調整面板 -->
+        <div class="controls-panel">
+            <h3>員工資訊 & 能力評分</h3>
+            
+            <div class="form-group">
+                <label for="userNameInput">員工姓名</label>
+                <input type="text" id="userNameInput" placeholder="請輸入姓名" value="陳小明">
+            </div>
+
+            <div class="form-group">
+                <label for="userDeptInput">所屬部門</label>
+                <input type="text" id="userDeptInput" placeholder="例如：行政部 / 研發部" value="數位轉型辦公室">
+            </div>
+
+            <div style="margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; color: #555;">能力評分 (1-5)</div>
+
+            <div class="slider-group">
+                <label for="skill1">溝通協調</label>
+                <input type="range" id="skill1" min="1" max="5" value="4" step="1">
+                <span class="value-display" id="val1">4</span>
+            </div>
+
+            <div class="slider-group">
+                <label for="skill2">問題解決</label>
+                <input type="range" id="skill2" min="1" max="5" value="5" step="1">
+                <span class="value-display" id="val2">5</span>
+            </div>
+
+            <div class="slider-group">
+                <label for="skill3">時間管理</label>
+                <input type="range" id="skill3" min="1" max="5" value="3" step="1">
+                <span class="value-display" id="val3">3</span>
+            </div>
+
+            <div class="slider-group">
+                <label for="skill4">團隊合作</label>
+                <input type="range" id="skill4" min="1" max="5" value="5" step="1">
+                <span class="value-display" id="val4">5</span>
+            </div>
+
+            <div class="slider-group">
+                <label for="skill5">創新思維</label>
+                <input type="range" id="skill5" min="1" max="5" value="4" step="1">
+                <span class="value-display" id="val5">4</span>
+            </div>
+
+            <button id="generateBtn" class="action-btn">📊 生成/更新員工能力證</button>
+        </div>
+
+        <!-- 員工證預覽與下載區域 -->
+        <div class="badge-preview-area">
+            <h3>員工證預覽</h3>
+            
+            <!-- ====== 員工證卡片 HTML Layout (待被 html2canvas 截取) ====== -->
+            <div id="idBadgeCard" class="id-badge">
+                <div class="badge-header">
+                    <div class="comp-name">OFFICE COMPETENCY ASSESSMENT</div>
+                    <div class="title">員工能力認證卡</div>
+                </div>
+
+                <div class="badge-photo-area">
+                    <!-- 預設占位符 (可自行更換為頭像圖檔) -->
+                    &#128100;
+                </div>
+
+                <div class="badge-info">
+                    <div id="badgeName" class="badge-name">陳小明</div>
+                    <div id="badgeDept" class="badge-dept">數位轉型辦公室</div>
+                </div>
+
+                <!-- 卡片內的雷達圖 -->
+                <div class="badge-chart-container">
+                    <canvas id="badgeRadarChart"></canvas>
+                </div>
+
+                <div class="badge-footer">
+                    ID: OCA-2023-0801 | 有效期：永久
+                </div>
+            </div>
+            <!-- ====== /員工證卡片 ====== -->
+
+            <button id="saveBtn" class="action-btn">💾 下載員工證圖片 (PNG)</button>
+        </div>
+    </div>
+
+<script>
+    const skillLabels = ['溝通協調', '問題解決', '時間管理', '團隊合作', '創新思維'];
+    const inputIds = ['skill1', 'skill2', 'skill3', 'skill4', 'skill5'];
+    const valDisplayIds = ['val1', 'val2', 'val3', 'val4', 'val5'];
+
+    // 獲取當前滑桿數值数组
+    function getCurrentSkillsData() {
+        return inputIds.map(id => parseInt(document.getElementById(id).value));
+    }
+
+    // 更新滑桿數字顯示
+    inputIds.forEach((id, index) => {
+        const slider = document.getElementById(id);
+        const valDisplay = document.getElementById(valDisplayIds[index]);
+        slider.addEventListener('input', (e) => {
+            valDisplay.textContent = e.target.value;
+        });
+    });
+
+    let badgeChart = null; // 儲存卡片內的 Chart 實例
+
+    // === 初始化卡片內的 Chart ===
+    function initBadgeChart(data) {
+        const ctx = document.getElementById('badgeRadarChart').getContext('2d');
+        
+        // 如果已存在則銷毀，避免重疊
+        if(badgeChart) { badgeChart.destroy(); }
+
+        badgeChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: skillLabels,
+                datasets: [{
+                    label: '能力評分',
+                    data: data,
+                    // 調整顏色更配合卡片
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)', 
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 非常重要：填充容器
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0,0,0,0.1)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        suggestedMin: 0, suggestedMax: 5,
+                        ticks: { stepSize: 1, display: false }, // 隱藏卡片內的數字刻度
+                        pointLabels: {
+                            font: { size: 11, weight: 'bold' },
+                            color: '#7f8c8d'
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // === "生成/更新" 按鈕邏輯 ===
+    document.getElementById('generateBtn').addEventListener('click', () => {
+        // 1. 更新卡片上的姓名和部門
+        document.getElementById('badgeName').textContent = document.getElementById('userNameInput').value || "未命名";
+        document.getElementById('badgeDept').textContent = document.getElementById('userDeptInput').value || "未知部門";
+
+        // 2. 獲取當前滑桿數據，初始化/更新雷達圖
+        initBadgeChart(getCurrentSkillsData());
+
+        // 3. 顯示下載按鈕
+        document.getElementById('saveBtn').style.display = 'block';
+    });
+
+    // === "下載圖片" 按鈕邏輯 ===
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const badgeHTMLElement = document.getElementById('idBadgeCard');
+        const name = document.getElementById('badgeName').textContent;
+
+        // 使用 html2canvas 截取 DOM
+        html2canvas(badgeHTMLElement, {
+            scale: 2, // 提高解析度（視網膜螢幕效果）
+            useCORS: true, // 允許跨域圖片（如果有外鏈頭像）
+            backgroundColor: null, // 透明背景
+        }).then(canvas => {
+            // 將 Canvas 轉換為 PNG 數據
+            const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            
+            // 創建虛擬載結點進行下載
+            const link = document.createElement('a');
+            link.download = `員工證_${name}.png`;
+            link.href = image;
+            link.click();
+        });
+    });
+
+    // 網頁載入時預先生成一次
+    window.onload = () => {
+        document.getElementById('generateBtn').click();
+    };
+
+</script>
+
+</body>
+</html>
