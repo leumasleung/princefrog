@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>職場生存能力測驗 & 專屬員工證生成器</title>
+    <title>職場生存能力極限測驗 & 專屬員工證生成器</title>
     <!-- 引入 Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 引入 html2canvas 庫 -->
@@ -64,25 +64,12 @@
             border: 1px solid #e9ecef;
         }
 
-        .input-group {
-            flex: 1;
-        }
-
+        .input-group { flex: 1; }
         .input-group label {
-            display: block;
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #555;
+            display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #555;
         }
-
         .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px;
         }
 
         .question-card {
@@ -92,153 +79,61 @@
         }
 
         .question-title {
-            font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 10px;
-            color: var(--primary-color);
+            font-weight: bold; font-size: 15px; margin-bottom: 10px; color: var(--primary-color);
         }
 
         .options-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            display: flex; flex-direction: column; gap: 8px;
         }
 
         .option-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 6px;
-            transition: background 0.2s;
+            display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;
         }
-
-        .option-label:hover {
-            background: #f1f8ff;
-        }
+        .option-label:hover { background: #f1f8ff; }
 
         .submit-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(52,152,219,0.3);
+            display: block; width: 100%; padding: 15px; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 20px; box-shadow: 0 4px 10px rgba(52,152,219,0.3);
         }
         .submit-btn:hover { background: #2980b9; }
 
         /* 預覽與員工證區塊 */
         .preview-panel {
-            flex: 1;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
+            flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 20px;
         }
 
-        .preview-title {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: -10px;
-        }
+        .preview-title { font-weight: bold; color: var(--primary-color); margin-bottom: -10px; }
 
         /* 員工證卡片樣式 */
         .id-badge {
-            width: 320px;
-            height: 520px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid #e1e8ed;
-            background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
+            width: 320px; height: 520px; background: #fff; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; border: 1px solid #e1e8ed; background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
         }
 
         .id-badge::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 75px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
-            border-bottom-left-radius: 40% 15px;
-            border-bottom-right-radius: 40% 15px;
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 75px; background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%); border-bottom-left-radius: 40% 15px; border-bottom-right-radius: 40% 15px;
         }
 
-        .badge-header {
-            position: relative;
-            z-index: 10;
-            color: white;
-            margin-top: 12px;
-            text-align: center;
-        }
+        .badge-header { position: relative; z-index: 10; color: white; margin-top: 12px; text-align: center; }
         .badge-header .comp-name { font-size: 9px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase; }
         .badge-header .title { font-size: 16px; font-weight: bold; margin-top: 2px; }
 
         .badge-avatar {
-            margin-top: 20px;
-            position: relative;
-            z-index: 10;
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: #fff;
-            border: 4px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px;
-            color: #bdc3c7;
+            margin-top: 20px; position: relative; z-index: 10; width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 32px; color: #bdc3c7;
         }
 
-        .badge-info {
-            margin-top: 10px;
-            text-align: center;
-        }
+        .badge-info { margin-top: 10px; text-align: center; }
         .badge-name { font-size: 20px; font-weight: bold; color: var(--primary-color); }
         .badge-dept { font-size: 12px; color: #7f8c8d; margin-top: 2px; }
 
         .badge-chart-container {
-            width: 90%;
-            height: 200px;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 90%; height: 200px; margin-top: 10px; display: flex; justify-content: center; align-items: center;
         }
 
         .badge-footer {
-            width: 100%;
-            background: #f8f9fa;
-            padding: 8px 0;
-            text-align: center;
-            border-top: 1px solid #eee;
-            font-size: 9px;
-            color: #95a5a6;
+            width: 100%; background: #f8f9fa; padding: 8px 0; text-align: center; border-top: 1px solid #eee; font-size: 9px; color: #95a5a6;
         }
 
         .save-btn {
-            display: none;
-            width: 100%;
-            padding: 12px;
-            background: var(--success-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
+            display: none; width: 100%; padding: 12px; background: var(--success-color); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.3s;
         }
         .save-btn:hover { background: #219150; }
     </style>
@@ -247,7 +142,7 @@
 
 <header>
     <h1>💼 職場生存能力極限測驗</h1>
-    <p>回答以下 20 條有趣又寫實的靈魂拷問，解鎖你的專屬辦公室能力值與證照！</p>
+    <p>回答以下 20 條血淋淋的職場靈魂拷問，解鎖你的專屬辦公室能力值與證照！</p>
 </header>
 
 <div class="main-container">
@@ -265,7 +160,7 @@
         </div>
 
         <div id="questionsContainer">
-            <!-- 20題會由 JavaScript 動態生成 -->
+            <!-- 20題由 JavaScript 動態生成 -->
         </div>
 
         <button class="submit-btn" id="submitQuizBtn">✨ 計算評分並生成員工證</button>
@@ -305,198 +200,199 @@
 </div>
 
 <script>
-    // 5大能力類別
     const categories = ['溝通協調', '問題解決', '時間管理', '團隊合作', '抗壓能力'];
 
-    // 20條有趣搞怪的職場題目（每類4題，選項分數由 1 到 5）
+    // 20題題目設定（每類4題，包含了指定題目）
     const questionsData = [
         // --- 1. 溝通協調 (0) ---
         {
-            cat: 0, text: "1. 當主管在群組發了一張意義不明的長輩圖或迷因，你的第一反應是？",
+            cat: 0, text: "1. 印度同事用極濃口音 Present，大家完全聽不懂但內容非常重要，你會？",
             options: [
-                { t: "秒回貼圖拍馬屁，展現高度熱情", score: 5 },
-                { t: "認真分析迷因內涵並理性回覆", score: 4 },
-                { t: "已讀不回，假裝沒看到", score: 2 },
-                { t: "直接發一張更好笑的超越主管", score: 1 }
+                { t: "會後主動發 Email 請他提供 Slide 摘要並熱情交流", score: 5 },
+                { t: "會議中不斷點頭微笑，會後偷偷問聽得懂的同事", score: 4 },
+                { t: "在底下偷偷開 AI 即時語音字幕試圖救自己", score: 3 },
+                { t: "放棄掙扎，直接閉上眼睛假裝深思", score: 1 }
             ]
         },
         {
-            cat: 0, text: "2. 開會時同事講了一個完全不好笑的冷笑話，全場安靜，你怎麼辦？",
+            cat: 0, text: "2. 同事和你跟進項目，但他口臭非常嚴重，你會？",
             options: [
-                { t: "大聲拍手叫好順便幫他圓謊救場", score: 5 },
-                { t: "禮貌性乾笑兩聲維持職場和平", score: 4 },
-                { t: "尷尬到腳趾抓地，假裝網路斷線", score: 2 },
-                { t: "冷酷地看著他：「好笑嗎？」", score: 1 }
+                { t: "微笑遞上一粒口香糖：「這超好吃，你要不要來一粒？」", score: 5 },
+                { t: "忍氣吞聲，慢慢退後兩步保持社交距離", score: 3 },
+                { t: "立刻戴上 N95 口罩，假裝自己感冒咳嗽", score: 2 },
+                { t: "當場捏住鼻子，大喊：「你剛剛是吃了大便嗎？！」", score: 1 }
             ]
         },
         {
-            cat: 0, text: "3. 當客戶傳來『我覺得這樣好像不太對，但又說不上來哪裡怪』時，你的內心OS與對應是？",
+            cat: 0, text: "3. 上司說今年 Team Building 要去野外定向，大家覺得超熱超辛苦又沒人敢作聲，你會？",
             options: [
-                { t: "微笑引導客戶說出具體修改方向", score: 5 },
-                { t: "條列式列出原本的設計邏輯請他確認", score: 4 },
-                { t: "內心大翻白眼，隨便交出同一個版本", score: 2 },
-                { t: "直接把電腦螢幕砸了原地崩潰", score: 1 }
+                { t: "私下收集大家意見，提出「室內密室逃脫」等替代方案向主管優雅建議", score: 5 },
+                { t: "在私下 WhatsApp 群組瘋狂吐槽，但會議上一言不發", score: 3 },
+                { t: "活動當天早上打電話請病假", score: 2 },
+                { t: "當場直接翻白眼：「去野外？要去你自己去！」", score: 1 }
             ]
         },
         {
-            cat: 0, text: "4. 收到一封主旨寫著『急！緊急開會』但內文空白的信，你會？",
+            cat: 0, text: "4. 開會時客戶對著你的 Proposal 大發雷霆，但明明是他上次自己要求的，你會？",
             options: [
-                { t: "秒回信詢問具體議程與準備資料", score: 5 },
-                { t: "老神在在地拿杯咖啡走到會議室", score: 4 },
-                { t: "嚇到心臟病發，覺得自己要被開除了", score: 2 },
-                { t: "當作沒看到，繼續滑手機", score: 1 }
+                { t: "冷靜拿出上次會議紀錄，委婉地幫客戶記憶復甦", score: 5 },
+                { t: "先道道歉包攬責任，回去再默默修改", score: 4 },
+                { t: "低頭瘋狂畫畫，假裝自己在認真記筆記", score: 2 },
+                { t: "當場拍桌：「你自己上次親口講的，要不要聽錄音？！」", score: 1 }
             ]
         },
 
         // --- 2. 問題解決 (1) ---
         {
-            cat: 1, text: "5. 電腦藍屏死當，重開機三次沒用，下一步你會？",
+            cat: 1, text: "5. 大老闆要求項目 1 個月內完成，但明明一定要 3 個月才做好，你會？",
             options: [
-                { t: "冷靜切斷電源並回報IT工程師", score: 5 },
-                { t: "上網搜尋錯誤代碼自己找解法", score: 4 },
-                { t: "拆開主機板大喊一聲『我知道了』並亂拔一條線", score: 2 },
-                { t: "猛捶螢幕大喊救命然後準備等死", score: 1 }
+                { t: "拆解 MVP（最小可行性產品），拿數據告訴老闆 1 個月能先交出哪些重點", score: 5 },
+                { t: "先一口答應下來，最後一週再向老闆哭訴人手不足求延期", score: 3 },
+                { t: "拉著全組人每天加班到凌晨 2 點狂幹", score: 2 },
+                { t: "當場遞出辭呈：「既然這樣，那你找神仙來做吧。」", score: 1 }
             ]
         },
         {
-            cat: 1, text: "6. 專案進度大落後，離死線只剩兩小時，你會選擇？",
+            cat: 1, text: "6. 正要 Present 給客戶前 5 分鐘，PPT 檔案突然損毀開啟不了，你會？",
             options: [
-                { t: "精準評估最核心功能，砍掉不必要的部分趕工", score: 5 },
-                { t: "瘋狂加速，能寫多少算多少", score: 4 },
-                { t: "直接召喚神祕力量，祈禱奇蹟發生", score: 2 },
-                { t: "原地躺平，準備好明天寫辭呈", score: 1 }
+                { t: "完全不慌，憑記憶直接開白板或拿實體樣品口頭生動演示", score: 5 },
+                { t: "火速找雲端自動備份或歷史版本救救援", score: 4 },
+                { t: "滿頭大汗向客戶道歉，延後會議", score: 2 },
+                { t: "假裝肚子劇痛衝進廁所躲起來", score: 1 }
             ]
         },
         {
-            cat: 1, text: "7. 遇到印表機卡紙，周圍同事都在等著印檔案，你的反應是？",
+            cat: 1, text: "7. 辦公室唯一的印表機卡紙，後面排了一堆急著要印資料的同事，你會？",
             options: [
-                { t: "熟練地打開背蓋溫柔地將紙張完美抽出", score: 5 },
-                { t: "研究一下說明書試圖拯救它", score: 4 },
-                { t: "一拳拍在印表機上（玄學修理法）", score: 2 },
-                { t: "對著印表機大聲哭泣並宣佈它壞了", score: 1 }
+                { t: "熟練地打開蓋板迅速找出卡紙部位，瞬間變身維修達人", score: 5 },
+                { t: "幫忙大家轉發檔案到另一樓層的印表機去印", score: 4 },
+                { t: "用力拍打印表機兩下，發現沒用就悄悄溜走", score: 2 },
+                { t: "大聲宣布：「印表機爆炸了！」然後把資料丟在地上", score: 1 }
             ]
         },
+
         {
-            cat: 1, text: "8. 辦公室突然大跳電，大家一片慌亂，你手頭還有急件，你會？",
+            cat: 1, text: "8. 專案執行到一半，外包廠商突然宣佈倒閉跑路，你會？",
             options: [
-                { t: "立刻用手機熱點與筆電備用電源繼續奮戰", score: 5 },
-                { t: "先存檔備份，然後觀望狀況", score: 4 },
-                { t: "打開手機手電筒摸黑敲鍵盤", score: 2 },
-                { t: "大喊『今天提早下班』並第一個衝出大門", score: 1 }
+                { t: "啟動備用廠商名單，並交接已完成的進度補救", score: 5 },
+                { t: "自己頂上去，通宵把外包的工作幹完", score: 3 },
+                { t: "抱著同事大哭：「我們完蛋了！」", score: 2 },
+                { t: "跟著外包廠商一起失聯跑路", score: 1 }
             ]
         },
 
         // --- 3. 時間管理 (2) ---
         {
-            cat: 2, text: "9. 早上鬧鐘響了，你通常會按幾次『貪睡按鈕 (Snooze)』？",
+            cat: 2, text: "9. 早上鬧鐘響了，你通常會按幾次「 snooze (貪睡)」按鈕？",
             options: [
-                { t: "鬧鐘響前一秒自動睜眼，從容起床", score: 5 },
-                { t: "按 1 次，準時起床絕不拖延", score: 4 },
-                { t: "按無數次直到遲到半小時才驚醒衝出門", score: 2 },
-                { t: "直接請特休，今天不打算起床了", score: 1 }
+                { t: "鬧鐘響前 1 分鐘自然醒，從容起身做早餐", score: 5 },
+                { t: "按 1 次，極限計算梳洗時間並準時出門", score: 4 },
+                { t: "按了 10 次，最後以狂奔姿態壓線打卡", score: 2 },
+                { t: "按到醒來發現已經中午，順便請半天假", score: 1 }
             ]
         },
         {
-            cat: 2, text: "10. 面對雜亂無章的待辦事項（To-Do List），你的處理習慣是？",
+            cat: 2, text: "10. 下班前 5 分鐘，主管突然遞給你一個「明天一早要用」的緊急文件，你會？",
             options: [
-                { t: "按照輕重緩急完美排序並高效打勾清除", score: 5 },
-                { t: "一項一項慢慢做，總會做完的", score: 4 },
-                { t: "把『滑手機』也寫進去並一一打勾滿足成就感", score: 2 },
-                { t: "全部堆在旁邊假裝看不見", score: 1 }
+                { t: "花 10 分鐘評估核心關鍵，高效做完再快樂下班", score: 5 },
+                { t: "認命留下來加班到八點做完", score: 4 },
+                { t: "帶回家放在床頭，結果整晚做噩夢沒做", score: 2 },
+                { t: "裝作沒看見，背起背包以閃電的速度衝出門", score: 1 }
             ]
         },
         {
-            cat: 2, text: "11. 下班前一分鐘，主管突然走過來丟給你一個『明天早上要用的急件』，你會？",
+            cat: 2, text: "11. 面對堆積如山的待辦事項（To-Do List），你的處理順序是？",
             options: [
-                { t: "微笑評估時間，有效率地在短時間內完美交差", score: 5 },
-                { t: "默默加班把它趕完", score: 4 },
-                { t: "當場石化，眼淚在眼眶裡打轉", score: 2 },
-                { t: "裝沒聽到直接背背包下班", score: 1 }
+                { t: "使用「艾森豪矩陣」先做重要且緊急的事", score: 5 },
+                { t: "從最簡單、最順手的事情開始做", score: 4 },
+                { t: "先把「滑手機、喝咖啡」寫進 List 再劃掉找成就感", score: 2 },
+                { t: "盯著清單發呆兩小時，最後一件都沒做", score: 1 }
             ]
         },
         {
-            cat: 2, text: "12. 工作到一半，同事突然邀你喝手搖飲，你手上的進度是？",
+            cat: 2, text: "12. 同事邀你下午一起團購手搖飲料，但你手上有急件，你會？",
             options: [
-                { t: "秒殺手頭工作，再順便幫大家統整點單拿折扣", score: 5 },
-                { t: "稍微告一段落後開心跟著去", score: 4 },
-                { t: "不管三七二十一先去喝再說，導致深夜加班", score: 2 },
-                { t: "冷酷拒絕：『你們這群墮落的人！』", score: 1 }
+                { t: "秒訂完成，並給自己設定「喝完這杯前要把工作做完」的計時獎勵", score: 5 },
+                { t: "忍痛拒絕，專心先把工作趕完", score: 4 },
+                { t: "跟著訂飲料並開始跟同事聊天 1 小時，導致加班", score: 2 },
+                { t: "把同事的手搖飲打翻：「喝什麼喝！不用做事啊！」", score: 1 }
             ]
         },
 
         // --- 4. 團隊合作 (3) ---
         {
-            cat: 3, text: "13. 團體專案中，組員大家都默默裝死不說話，你是哪一種人？",
+            cat: 3, text: "13. 團體專案中遇到了著名的「豬隊友」完全不做事，你會？",
             options: [
-                { t: "霸氣主導分配工作，成為團隊救世主", score: 5 },
-                { t: "無奈默默扛下大部分工作", score: 4 },
-                { t: "跟著裝死，大家一起完蛋", score: 2 },
-                { t: "直接向上舉報豬隊友", score: 1 }
+                { t: "明確切分作業微小化，給他指派簡單明確的任務並設置 Deadline", score: 5 },
+                { t: "默默把他的份也做完，免得影響自己績效", score: 3 },
+                { t: "在背後跟其他同事瘋狂抱怨他", score: 2 },
+                { t: "直接在全公司的大群組標記他開罵", score: 1 }
             ]
         },
         {
-            cat: 3, text: "14. 公司尾牙抽到要上台表演才藝，你會？",
+            cat: 3, text: "14. 公司尾牙抽獎需要各部門派人上台表演，你會？",
             options: [
-                { t: "直接C位出道，帶領大家跳熱舞炒熱全場", score: 5 },
-                { t: "參與合唱或群舞，盡到員工本分", score: 4 },
-                { t: "尷尬上台比個愛心，迅速閃退", score: 2 },
-                { t: "裝病請假或當場逃跑", score: 1 }
+                { t: "熱情參與編舞組或後勤，幫大家爭取最佳表現", score: 5 },
+                { t: "配合大家在後面當充氣背景板舞者", score: 4 },
+                { t: "上台後完全僵硬，像木頭一樣站著", score: 2 },
+                { t: "尾牙當天裝 sick leave（病假）逃避表演", score: 1 }
             ]
         },
         {
-            cat: 3, text: "15. 午餐時間大家討論要吃哪一家外送，意見分歧時你會？",
+            cat: 3, text: "15. 訂午餐外送時大家意見分歧，有人想吃壽司有人想吃麻辣鍋，你會？",
             options: [
-                { t: "迅速統整大家口味開團並搞定優惠碼", score: 5 },
-                { t: "投給票數最高的那一家", score: 4 },
-                { t: "隨便都好，反正我沒意見", score: 2 },
-                { t: "『你們吃你們的，我去吃超商』", score: 1 }
+                { t: "找到一家同時有賣壽司與鍋物的複合式餐廳，拯救大家", score: 5 },
+                { t: "採用少數服從多數，幫少數人安撫情緒", score: 4 },
+                { t: "隨便啦，你們點什麼我吃什麼", score: 3 },
+                { t: "因為吃不到想吃的，當場氣到自己跑去吃超商", score: 1 }
             ]
         },
         {
-            cat: 3, text: "16. 看到隔壁同事桌上堆滿零食卻不在座位上，你路過時會？",
+            cat: 3, text: "16. 隔壁組的同事因為專案爆掉在座位上默默掉眼淚，你會？",
             options: [
-                { t: "順手幫他整理一下並稱讚他零食很多", score: 5 },
-                { t: "心裡羨慕但克制自己", score: 4 },
-                { t: "偷偷摸走一個巧克力並留下迷因紙條", score: 2 },
-                { t: "把他的零食全部藏起來惡作劇", score: 1 }
+                { t: "遞上紙巾，並私下問有沒有自己能分擔的小忙", score: 5 },
+                { t: "默默在他的桌上放一顆巧克力", score: 4 },
+                { t: "裝作沒看到，繼續打自己的字", score: 2 },
+                { t: "拿起手機偷拍發限時動態：「有人哭了哈哈」", score: 1 }
             ]
         },
 
         // --- 5. 抗壓能力 (4) ---
         {
-            cat: 4, text: "17. 主管在眾人面前公開挑剔你的報表格式不好看，你當下的內心劇場是？",
+            cat: 4, text: "17. 團隊內同事都有各自小圈子，你要一個人吃飯，大家去 Happy Hour 也不叫你，你會？",
             options: [
-                { t: "內心冷靜評估：『這老頭不懂審美』，表面微笑點頭說好", score: 5 },
-                { t: "虛心接受，回去馬上改得漂漂亮亮", score: 4 },
-                { t: "表面微笑，內心已經流淚一萬次", score: 2 },
-                { t: "當場拍桌大喊：『老子不幹了！』", score: 1 }
+                { t: "超開心！一個人吃飯自由自在，下班直接享受 Me Time", score: 5 },
+                { t: "做好本份，尋找公司跨部門或其他合得來的夥伴", score: 4 },
+                { t: "躲在廁所隔間裡面吃三明治，邊吃邊流淚", score: 2 },
+                { t: "偷偷去舉報他們在辦公室搞霸凌和小團體", score: 1 }
             ]
         },
         {
-            cat: 4, text: "18. 年底績效面談時，主管給了你一個平庸的評價，你回家的反應是？",
+            cat: 4, text: "18. 年底績效面談，主管給了你一個超低評分還逼你承認，你會？",
             options: [
-                { t: "認清現實，開始悄悄優化履歷準備跳槽賺更多", score: 5 },
-                { t: "檢討自己哪裡可以改進，明年繼續努力", score: 4 },
-                { t: "爆哭一整晚睡不著覺懷疑人生", score: 2 },
-                { t: "氣到去公司Google評論刷一星負評", score: 1 }
+                { t: "冷靜要求具體改善指標，會後立刻開始面試更新 Resume 準備跳槽", score: 5 },
+                { t: "默默接受，回家抱著棉被痛哭", score: 3 },
+                { t: "當場跟主管大吵一架並摔門而出", score: 2 },
+                { t: "去公司 Google Map 評論狂刷 1 星負評並寫匿名信", score: 1 }
+            ]
+        },
+
+        {
+            cat: 4, text: "19. 辦公室冷氣故障高達 33 度，但今天有重要報告不能離場，你會？",
+            options: [
+                { t: "拿冰飲冰敷脈搏，並開玩笑緩和大家躁動的情緒", score: 5 },
+                { t: "默默忍受，邊流汗邊把報告做完", score: 4 },
+                { t: "熱到發脾氣，對旁邊的同事大吼大叫", score: 2 },
+                { t: "脫到只剩內衣內褲並躺在地上擺爛", score: 1 }
             ]
         },
         {
-            cat: 4, text: "19. 辦公室冷氣壞了，室溫高達 32 度，大家都在哀號，此時的你是？",
+            cat: 4, text: "20. 你辛苦做了一個月的 Project，最後成果發表時主管卻說全是他一個人的功勞，你會？",
             options: [
-                { t: "自備迷你小風扇，一邊搧風一邊化身職場哲學家繼續工作", score: 5 },
-                { t: "狂擦汗，一邊擦一邊抱怨一邊做事", score: 4 },
-                { t: "熱到融化，大腦完全無法思考", score: 2 },
-                { t: "直接宣佈因為天災人禍無法辦公", score: 1 }
-            ]
-        },
-        {
-            cat: 4, text: "20. 好不容易熬到週五下午，正準備開心週末，主管突然宣佈週末要緊急加班，你的反應是？",
-            options: [
-                { t: "冷靜詢問加班費與補休怎麼算，順便賺一筆", score: 5 },
-                { t: "長嘆一氣，認命點開電腦", score: 4 },
-                { t: "精神崩潰，當場在位子上發瘋", score: 2 },
-                { t: "直接將手機關機搞失蹤", score: 1 }
+                { t: "在簡報頁面巧妙留有自己的名字與版本紀錄，優雅拿回主導權", score: 5 },
+                { t: "私下向更高層的老闆報告過程，拿數據說話", score: 4 },
+                { t: "忍氣吞聲，只敢在 Thread 上發匿名黑文", score: 2 },
+                { t: "發表會上直接搶過麥克風：「這明明全是我做的！」", score: 1 }
             ]
         }
     ];
@@ -506,7 +402,6 @@
     questionsData.forEach((q, index) => {
         let optionsHtml = '';
         q.options.forEach((opt, optIndex) => {
-            // 預設第一選項被選中或按平均給分
             const checked = optIndex === 0 ? 'checked' : '';
             optionsHtml += `
                 <label class="option-label">
@@ -527,7 +422,7 @@
 
     let badgeChart = null;
 
-    // 初始化雷達圖函數
+    // 初始化雷達圖
     function initRadarChart(scores) {
         const ctx = document.getElementById('badgeRadarChart').getContext('2d');
         if (badgeChart) { badgeChart.destroy(); }
@@ -568,7 +463,7 @@
         });
     }
 
-    // 計算分數與更新證件邏輯
+    // 計算分數與更新證件
     function calculateAndRender() {
         const name = document.getElementById('userName').value || "無名社畜";
         const dept = document.getElementById('userDept').value || "神祕部門";
@@ -576,7 +471,6 @@
         document.getElementById('badgeName').textContent = name;
         document.getElementById('badgeDept').textContent = dept;
 
-        // 計算 5 大類別各自的平均分數
         let catSums = [0, 0, 0, 0, 0];
         let catCounts = [0, 0, 0, 0, 0];
 
@@ -587,24 +481,18 @@
             catCounts[q.cat]++;
         });
 
-        // 算出各類別平均值 (1-5 之間)
         const finalScores = catSums.map((sum, i) => parseFloat((sum / catCounts[i]).toFixed(1)));
 
-        // 初始化圖表
         initRadarChart(finalScores);
-
-        // 顯示下載按鈕
         document.getElementById('saveBadgeBtn').style.display = 'block';
     }
 
-    // 綁定提交按鈕事件
+    // 按鈕事件
     document.getElementById('submitQuizBtn').addEventListener('click', () => {
         calculateAndRender();
-        // 自動捲動到預覽處（行動裝置友善）
         document.getElementById('idBadgeCard').scrollIntoView({ behavior: 'smooth' });
     });
 
-    // 綁定下載圖片按鈕事件
     document.getElementById('saveBadgeBtn').addEventListener('click', () => {
         const cardElement = document.getElementById('idBadgeCard');
         const name = document.getElementById('badgeName').textContent;
@@ -622,7 +510,6 @@
         });
     });
 
-    // 網頁載入時自動生成一次預設圖表
     window.onload = () => {
         calculateAndRender();
     };
