@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>職場生存能力測驗 & 專屬員工證生成器</title>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入 html2canvas 庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header h1 { color: var(--primary-color); margin-bottom: 5px; }
+        header p { color: #7f8c8d; font-size: 14px; }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1250px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        /* 問卷區塊 */
+        .quiz-panel {
+            flex: 2;
+            min-width: 320px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .user-info-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .question-card {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .question-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .option-label:hover {
+            background: #f1f8ff;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(52,152,219,0.3);
+        }
+        .submit-btn:hover { background: #2980b9; }
+
+        /* 預覽與員工證區塊 */
+        .preview-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: -10px;
+        }
+
+        /* 員工證卡片樣式 */
+        .id-badge {
+            width: 320px;
+            height: 520px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #e1e8ed;
+            background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
+        }
+
+        .id-badge::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 75px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            border-bottom-left-radius: 40% 15px;
+            border-bottom-right-radius: 40% 15px;
+        }
+
+        .badge-header {
+            position: relative;
+            z-index: 10;
+            color: white;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .badge-header .comp-name { font-size: 9px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase; }
+        .badge-header .title { font-size: 16px; font-weight: bold; margin-top: 2px; }
+
+        .badge-avatar {
+            margin-top: 20px;
+            position: relative;
+            z-index: 10;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: #fff;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            color: #bdc3c7;
+        }
+
+        .badge-info {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .badge-name { font-size: 20px; font-weight: bold; color: var(--primary-color); }
+        .badge-dept { font-size: 12px; color: #7f8c8d; margin-top: 2px; }
+
+        .badge-chart-container {
+            width: 90%;
+            height: 200px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .badge-footer {
+            width: 100%;
+            background: #f8f9fa;
+            padding: 8px 0;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 9px;
+            color: #95a5a6;
+        }
+
+        .save-btn {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .save-btn:hover { background: #219150; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>💼 職場生存能力極限測驗</h1>
+    <p>回答以下 20 條有趣又寫實的靈魂拷問，解鎖你的專屬辦公室能力值與證照！</p>
+</header>
+
+<div class="main-container">
+    <!-- 20題測驗面板 -->
+    <div class="quiz-panel">
+        <div class="user-info-box">
+            <div class="input-group">
+                <label for="userName">員工姓名</label>
+                <input type="text" id="userName" placeholder="請輸入大名" value="社畜小王">
+            </div>
+            <div class="input-group">
+                <label for="userDept">所屬部門</label>
+                <input type="text" id="userDept" placeholder="例如：摸魚部" value="專案混分組">
+            </div>
+        </div>
+
+        <div id="questionsContainer">
+            <!-- 20題會由 JavaScript 動態生成 -->
+        </div>
+
+        <button class="submit-btn" id="submitQuizBtn">✨ 計算評分並生成員工證</button>
+    </div>
+
+    <!-- 員工證預覽面板 -->
+    <div class="preview-panel">
+        <div class="preview-title">專屬能力員工證預覽</div>
+        
+        <!-- 員工證卡片 DOM -->
+        <div id="idBadgeCard" class="id-badge">
+            <div class="badge-header">
+                <div class="comp-name">OFFICE SURVIVAL BADGE</div>
+                <div class="title">黃金社畜認證卡</div>
+            </div>
+
+            <div class="badge-avatar">
+                &#128104;&#8205;&#128187;
+            </div>
+
+            <div class="badge-info">
+                <div id="badgeName" class="badge-name">社畜小王</div>
+                <div id="badgeDept" class="badge-dept">專案混分組</div>
+            </div>
+
+            <div class="badge-chart-container">
+                <canvas id="badgeRadarChart"></canvas>
+            </div>
+
+            <div class="badge-footer">
+                ID: BOSS-9487-PRO | 有效期：直到想離職為止
+            </div>
+        </div>
+
+        <button class="save-btn" id="saveBadgeBtn">💾 下載員工證圖片 (PNG)</button>
+    </div>
+</div>
+
+<script>
+    // 5大能力類別
+    const categories = ['溝通協調', '問題解決', '時間管理', '團隊合作', '抗壓能力'];
+
+    // 20條有趣搞怪的職場題目（每類4題，選項分數由 1 到 5）
+    const questionsData = [
+        // --- 1. 溝通協調 (0) ---
+        {
+            cat: 0, text: "1. 當主管在群組發了一張意義不明的長輩圖或迷因，你的第一反應是？",
+            options: [
+                { t: "秒回貼圖拍馬屁，展現高度熱情", score: 5 },
+                { t: "認真分析迷因內涵並理性回覆", score: 4 },
+                { t: "已讀不回，假裝沒看到", score: 2 },
+                { t: "直接發一張更好笑的超越主管", score: 1 }
+            ]
+        },
+        {
+            cat: 0, text: "2. 開會時同事講了一個完全不好笑的冷笑話，全場安靜，你怎麼辦？",
+            options: [
+                { t: "大聲拍手叫好順便幫他圓謊救場", score: 5 },
+                { t: "禮貌性乾笑兩聲維持職場和平", score: 4 },
+                { t: "尷尬到腳趾抓地，假裝網路斷線", score: 2 },
+                { t: "冷酷地看著他：「好笑嗎？」", score: 1 }
+            ]
+        },
+        {
+            cat: 0, text: "3. 當客戶傳來『我覺得這樣好像不太對，但又說不上來哪裡怪』時，你的內心OS與對應是？",
+            options: [
+                { t: "微笑引導客戶說出具體修改方向", score: 5 },
+                { t: "條列式列出原本的設計邏輯請他確認", score: 4 },
+                { t: "內心大翻白眼，隨便交出同一個版本", score: 2 },
+                { t: "直接把電腦螢幕砸了原地崩潰", score: 1 }
+            ]
+        },
+        {
+            cat: 0, text: "4. 收到一封主旨寫著『急！緊急開會』但內文空白的信，你會？",
+            options: [
+                { t: "秒回信詢問具體議程與準備資料", score: 5 },
+                { t: "老神在在地拿杯咖啡走到會議室", score: 4 },
+                { t: "嚇到心臟病發，覺得自己要被開除了", score: 2 },
+                { t: "當作沒看到，繼續滑手機", score: 1 }
+            ]
+        },
+
+        // --- 2. 問題解決 (1) ---
+        {
+            cat: 1, text: "5. 電腦藍屏死當，重開機三次沒用，下一步你會？",
+            options: [
+                { t: "冷靜切斷電源並回報IT工程師", score: 5 },
+                { t: "上網搜尋錯誤代碼自己找解法", score: 4 },
+                { t: "拆開主機板大喊一聲『我知道了』並亂拔一條線", score: 2 },
+                { t: "猛捶螢幕大喊救命然後準備等死", score: 1 }
+            ]
+        },
+        {
+            cat: 1, text: "6. 專案進度大落後，離死線只剩兩小時，你會選擇？",
+            options: [
+                { t: "精準評估最核心功能，砍掉不必要的部分趕工", score: 5 },
+                { t: "瘋狂加速，能寫多少算多少", score: 4 },
+                { t: "直接召喚神祕力量，祈禱奇蹟發生", score: 2 },
+                { t: "原地躺平，準備好明天寫辭呈", score: 1 }
+            ]
+        },
+        {
+            cat: 1, text: "7. 遇到印表機卡紙，周圍同事都在等著印檔案，你的反應是？",
+            options: [
+                { t: "熟練地打開背蓋溫柔地將紙張完美抽出", score: 5 },
+                { t: "研究一下說明書試圖拯救它", score: 4 },
+                { t: "一拳拍在印表機上（玄學修理法）", score: 2 },
+                { t: "對著印表機大聲哭泣並宣佈它壞了", score: 1 }
+            ]
+        },
+        {
+            cat: 1, text: "8. 辦公室突然大跳電，大家一片慌亂，你手頭還有急件，你會？",
+            options: [
+                { t: "立刻用手機熱點與筆電備用電源繼續奮戰", score: 5 },
+                { t: "先存檔備份，然後觀望狀況", score: 4 },
+                { t: "打開手機手電筒摸黑敲鍵盤", score: 2 },
+                { t: "大喊『今天提早下班』並第一個衝出大門", score: 1 }
+            ]
+        },
+
+        // --- 3. 時間管理 (2) ---
+        {
+            cat: 2, text: "9. 早上鬧鐘響了，你通常會按幾次『貪睡按鈕 (Snooze)』？",
+            options: [
+                { t: "鬧鐘響前一秒自動睜眼，從容起床", score: 5 },
+                { t: "按 1 次，準時起床絕不拖延", score: 4 },
+                { t: "按無數次直到遲到半小時才驚醒衝出門", score: 2 },
+                { t: "直接請特休，今天不打算起床了", score: 1 }
+            ]
+        },
+        {
+            cat: 2, text: "10. 面對雜亂無章的待辦事項（To-Do List），你的處理習慣是？",
+            options: [
+                { t: "按照輕重緩急完美排序並高效打勾清除", score: 5 },
+                { t: "一項一項慢慢做，總會做完的", score: 4 },
+                { t: "把『滑手機』也寫進去並一一打勾滿足成就感", score: 2 },
+                { t: "全部堆在旁邊假裝看不見", score: 1 }
+            ]
+        },
+        {
+            cat: 2, text: "11. 下班前一分鐘，主管突然走過來丟給你一個『明天早上要用的急件』，你會？",
+            options: [
+                { t: "微笑評估時間，有效率地在短時間內完美交差", score: 5 },
+                { t: "默默加班把它趕完", score: 4 },
+                { t: "當場石化，眼淚在眼眶裡打轉", score: 2 },
+                { t: "裝沒聽到直接背背包下班", score: 1 }
+            ]
+        },
+        {
+            cat: 2, text: "12. 工作到一半，同事突然邀你喝手搖飲，你手上的進度是？",
+            options: [
+                { t: "秒殺手頭工作，再順便幫大家統整點單拿折扣", score: 5 },
+                { t: "稍微告一段落後開心跟著去", score: 4 },
+                { t: "不管三七二十一先去喝再說，導致深夜加班", score: 2 },
+                { t: "冷酷拒絕：『你們這群墮落的人！』", score: 1 }
+            ]
+        },
+
+        // --- 4. 團隊合作 (3) ---
+        {
+            cat: 3, text: "13. 團體專案中，組員大家都默默裝死不說話，你是哪一種人？",
+            options: [
+                { t: "霸氣主導分配工作，成為團隊救世主", score: 5 },
+                { t: "無奈默默扛下大部分工作", score: 4 },
+                { t: "跟著裝死，大家一起完蛋", score: 2 },
+                { t: "直接向上舉報豬隊友", score: 1 }
+            ]
+        },
+        {
+            cat: 3, text: "14. 公司尾牙抽到要上台表演才藝，你會？",
+            options: [
+                { t: "直接C位出道，帶領大家跳熱舞炒熱全場", score: 5 },
+                { t: "參與合唱或群舞，盡到員工本分", score: 4 },
+                { t: "尷尬上台比個愛心，迅速閃退", score: 2 },
+                { t: "裝病請假或當場逃跑", score: 1 }
+            ]
+        },
+        {
+            cat: 3, text: "15. 午餐時間大家討論要吃哪一家外送，意見分歧時你會？",
+            options: [
+                { t: "迅速統整大家口味開團並搞定優惠碼", score: 5 },
+                { t: "投給票數最高的那一家", score: 4 },
+                { t: "隨便都好，反正我沒意見", score: 2 },
+                { t: "『你們吃你們的，我去吃超商』", score: 1 }
+            ]
+        },
+        {
+            cat: 3, text: "16. 看到隔壁同事桌上堆滿零食卻不在座位上，你路過時會？",
+            options: [
+                { t: "順手幫他整理一下並稱讚他零食很多", score: 5 },
+                { t: "心裡羨慕但克制自己", score: 4 },
+                { t: "偷偷摸走一個巧克力並留下迷因紙條", score: 2 },
+                { t: "把他的零食全部藏起來惡作劇", score: 1 }
+            ]
+        },
+
+        // --- 5. 抗壓能力 (4) ---
+        {
+            cat: 4, text: "17. 主管在眾人面前公開挑剔你的報表格式不好看，你當下的內心劇場是？",
+            options: [
+                { t: "內心冷靜評估：『這老頭不懂審美』，表面微笑點頭說好", score: 5 },
+                { t: "虛心接受，回去馬上改得漂漂亮亮", score: 4 },
+                { t: "表面微笑，內心已經流淚一萬次", score: 2 },
+                { t: "當場拍桌大喊：『老子不幹了！』", score: 1 }
+            ]
+        },
+        {
+            cat: 4, text: "18. 年底績效面談時，主管給了你一個平庸的評價，你回家的反應是？",
+            options: [
+                { t: "認清現實，開始悄悄優化履歷準備跳槽賺更多", score: 5 },
+                { t: "檢討自己哪裡可以改進，明年繼續努力", score: 4 },
+                { t: "爆哭一整晚睡不著覺懷疑人生", score: 2 },
+                { t: "氣到去公司Google評論刷一星負評", score: 1 }
+            ]
+        },
+        {
+            cat: 4, text: "19. 辦公室冷氣壞了，室溫高達 32 度，大家都在哀號，此時的你是？",
+            options: [
+                { t: "自備迷你小風扇，一邊搧風一邊化身職場哲學家繼續工作", score: 5 },
+                { t: "狂擦汗，一邊擦一邊抱怨一邊做事", score: 4 },
+                { t: "熱到融化，大腦完全無法思考", score: 2 },
+                { t: "直接宣佈因為天災人禍無法辦公", score: 1 }
+            ]
+        },
+        {
+            cat: 4, text: "20. 好不容易熬到週五下午，正準備開心週末，主管突然宣佈週末要緊急加班，你的反應是？",
+            options: [
+                { t: "冷靜詢問加班費與補休怎麼算，順便賺一筆", score: 5 },
+                { t: "長嘆一氣，認命點開電腦", score: 4 },
+                { t: "精神崩潰，當場在位子上發瘋", score: 2 },
+                { t: "直接將手機關機搞失蹤", score: 1 }
+            ]
+        }
+    ];
+
+    // 動態渲染 20 條題目到頁面上
+    const container = document.getElementById('questionsContainer');
+    questionsData.forEach((q, index) => {
+        let optionsHtml = '';
+        q.options.forEach((opt, optIndex) => {
+            // 預設第一選項被選中或按平均給分
+            const checked = optIndex === 0 ? 'checked' : '';
+            optionsHtml += `
+                <label class="option-label">
+                    <input type="radio" name="q_${index}" value="${opt.score}" ${checked}>
+                    ${opt.t}
+                </label>
+            `;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.innerHTML = `
+            <div class="question-title">${q.text}</div>
+            <div class="options-group">${optionsHtml}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    let badgeChart = null;
+
+    // 初始化雷達圖函數
+    function initRadarChart(scores) {
+        const ctx = document.getElementById('badgeRadarChart').getContext('2d');
+        if (badgeChart) { badgeChart.destroy(); }
+
+        badgeChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: '能力評分',
+                    data: scores,
+                    backgroundColor: 'rgba(52, 152, 219, 0.25)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0,0,0,0.1)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        suggestedMin: 1,
+                        suggestedMax: 5,
+                        ticks: { stepSize: 1, display: false },
+                        pointLabels: {
+                            font: { size: 10, weight: 'bold' },
+                            color: '#2c3e50'
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 計算分數與更新證件邏輯
+    function calculateAndRender() {
+        const name = document.getElementById('userName').value || "無名社畜";
+        const dept = document.getElementById('userDept').value || "神祕部門";
+
+        document.getElementById('badgeName').textContent = name;
+        document.getElementById('badgeDept').textContent = dept;
+
+        // 計算 5 大類別各自的平均分數
+        let catSums = [0, 0, 0, 0, 0];
+        let catCounts = [0, 0, 0, 0, 0];
+
+        questionsData.forEach((q, index) => {
+            const selected = document.querySelector(`input[name="q_${index}"]:checked`);
+            const score = selected ? parseInt(selected.value) : 3;
+            catSums[q.cat] += score;
+            catCounts[q.cat]++;
+        });
+
+        // 算出各類別平均值 (1-5 之間)
+        const finalScores = catSums.map((sum, i) => parseFloat((sum / catCounts[i]).toFixed(1)));
+
+        // 初始化圖表
+        initRadarChart(finalScores);
+
+        // 顯示下載按鈕
+        document.getElementById('saveBadgeBtn').style.display = 'block';
+    }
+
+    // 綁定提交按鈕事件
+    document.getElementById('submitQuizBtn').addEventListener('click', () => {
+        calculateAndRender();
+        // 自動捲動到預覽處（行動裝置友善）
+        document.getElementById('idBadgeCard').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // 綁定下載圖片按鈕事件
+    document.getElementById('saveBadgeBtn').addEventListener('click', () => {
+        const cardElement = document.getElementById('idBadgeCard');
+        const name = document.getElementById('badgeName').textContent;
+
+        html2canvas(cardElement, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
+            const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            const link = document.createElement('a');
+            link.download = `職場能力證書_${name}.png`;
+            link.href = image;
+            link.click();
+        });
+    });
+
+    // 網頁載入時自動生成一次預設圖表
+    window.onload = () => {
+        calculateAndRender();
+    };
+</script>
+
+</body>
+</html>
